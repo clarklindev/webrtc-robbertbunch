@@ -2394,6 +2394,95 @@ export default App;
 - start up frontend/ `pnpm run start`
 
 ### 46. Setup Join-Video route and get the decoded data in React - (8min)
+- install `pnpm i axios`
+- install cors `pnpm i cors`
+
+### click on join-video link...
+- sends token to server (server path `/join-video`)
+- token gets decoded
+- sent back to client
+- update MainVideoPage
+
+### expressRoutes
+- change req.query to req.body
+- backend: 
+  - `server.js` 
+    -> `app.use(cors());`
+    - allows app.post() on server...
+
+    -> `app.use(express.json());`
+- app.use(express.json()) is middleware in Express that parses incoming requests with JSON payloads.
+- It makes the parsed data available on req.body    
+
+```js
+app.post('/example', (req, res) => {
+  console.log(req.body);  // The parsed JSON object from the request body
+  res.send('Data received');
+});
+```
+
+### get token
+- with this change visit and get the link: `https://localhost:9000/user-link`...
+
+- visit link with token: `https://localhost:3000/join-video?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9mZXNzaW9uYWxzRnVsbE5hbWUiOiJSb2JlcnQgQnVuY2gsIE0uRCIsImFwcHREYXRlIjoxNzM4OTg4MjcyMjYyLCJpYXQiOjE3Mzg5ODgyNzJ9.kf1weNxkMkc8ouoqGlUeG55TzI4UQ7Ey0LV0PXlwUVc`
+- it opens `src/videoComponents/MainVideoPage`
+  - which calls server `https://localhost:9000/validate-link` and passes the token with the body of request
+
+- on sever: handled by `expressRoutes.js`
+  - decode and read token
+  
+```js
+//expressRoutes.js
+
+app.post('/validate-link', (req, res)=>{
+  //get the token from body of post request (express.json())
+  const token = req.body.token;
+
+  //decode jwt with secret
+  const decodedData = jwt.verify(token, linkSecret);
+
+  //send the decoded data (token object) back to the frontend
+  res.json(decodedData);
+});
+```
+
+- you should be able to read the token data
+
+<img
+src='exercise_files/section05-webrtc+react-46-join-video-reading-data-from-token.png'
+alt='section05-webrtc+react-46-join-video-reading-data-from-token.png'
+width=600
+/>
+
+```js
+//front-end-telegal/src/videoComponents/MainVideoPage.js
+import {useEffect} from 'react';
+import {useSearchParams} from 'react-router-dom';
+import axios from 'axios';
+
+const MainVideoPage = ()=>{
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(()=>{
+    const token = searchParams.get('token');
+    
+    console.log(token);
+    const fetchDecodedToken = async ()=>{
+      const resp = await axios.post('https://localhost:9000/validate-link', {token})
+    }
+    fetchDecodedToken();
+
+  }, []);
+
+  return (
+    <h1>Main video Page</h1>
+  )
+}
+
+export default MainVideoPage;
+```
+
 ### 47. Add starting components - (10min)
 ### 48. Wire up redux and make callStatus reducer - (8min)
 ### 49. Add action buttons, bootstrap, and fontawesome - (7min)

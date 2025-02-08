@@ -29,8 +29,13 @@ app.get('/user-link', (req, res)=>{
   res.send('https://localhost:3000/join-video?token='+token);
 });
 
-app.get('/validate-link', (req, res)=>{
-  const token = req.query.token;
+app.post('/validate-link', (req, res)=>{
+  //get the token from body of post request (express.json())
+  const token = req.body.token;
+
+  //decode jwt with secret
   const decodedData = jwt.verify(token, linkSecret);
+
+  //send the decoded data (token object) back to the frontend
   res.json(decodedData);
 });
