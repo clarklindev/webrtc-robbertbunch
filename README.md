@@ -2813,6 +2813,9 @@ const hangupCall = () => {
 ```
 
 ### 50. getUserMedia() and store the stream in redux - (9min)
+- request permission to allow camera and microphone
+- 
+
 ### 51. Create peerConnection and store it in redux - (7min)
 ### 52. Thinking through where our functions belong (& a few bug fixes) - (6min)
 ### 53. Abstracting the Video and Audio buttons - (8min)

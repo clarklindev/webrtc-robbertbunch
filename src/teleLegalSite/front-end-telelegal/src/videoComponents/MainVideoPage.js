@@ -13,8 +13,24 @@ const MainVideoPage = ()=>{
   const [searchParams, setSearchParams] = useSearchParams();
   const [apptInfo, setApptInfo] = useState({});
 
-  useEffect(()=>{
 
+  useEffect(()=>{
+    //fetch the user media
+    const fetchMedia = async() =>{
+      const constraints = {
+        video: true,  //atleast one is required, just dont show it yet
+        audio: false
+      }
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      }catch(err){
+        console.log(err);
+      }
+    }
+    fetchMedia();
+  }, []);
+
+  useEffect(()=>{
     //grab the token out fof the query string
     const token = searchParams.get('token');  //get token out querystring
     console.log(token);
