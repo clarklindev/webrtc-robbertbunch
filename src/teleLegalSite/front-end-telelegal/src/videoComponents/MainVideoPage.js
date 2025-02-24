@@ -5,6 +5,7 @@ import axios from 'axios';
 import './VideoComponents.css';
 import CallInfo from './CallInfo';
 import ChatWindow from './ChatWindow';
+import ActionButtons from './ActionButtons';
 
 const MainVideoPage = ()=>{
 
@@ -39,6 +40,8 @@ const MainVideoPage = ()=>{
         }
         <ChatWindow/>
       </div>
+      
+      <ActionButtons/>
     </div>
     
     

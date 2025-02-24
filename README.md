@@ -2740,6 +2740,78 @@ root.render(
 - `/redux-elements/actions/`
 
 ### 49. Add action buttons, bootstrap, and fontawesome - (7min)
+- ActionButton component allows us to interact with webRTC (join audio, join video, mute, choose devices etc)
+
+- frontend
+  - MainVideoPage
+    - `ActionButtons.js` (`front-end-telelegal/src/videoComponents/ActionButtons.js`)
+      - `HangupButton.js`
+
+- in MainVideoPage, add ActionButtons to the render
+- ActionButton has `HangupButton.js`
+- HangupBUtton uses an predefined action (for reduxs' use - called `updateCallStatus`)
+- `updateCallStatus.js` add to `src/redux-elements/actions/updateCallStatus.js`
+
+```js
+//src/redux-elements/actions/updateCallStatus.js
+- `UPDATE_CALL_STATUS` event receives prop and value
+- returns the action object {type, payload}
+
+export default(prop, value)=> {
+  return {
+    type: "UPDATE_CALL_STATUS",
+    payload: {prop, value}
+  }
+}
+```
+
+- the callStatusReducer
+
+```js
+//src/redux-elements/reducers/callStatusReducer.js
+const initState = {
+//...
+}
+
+export default (state = initState, action) => {
+  if (action.type === "UPDATE_CALL_STATUS") {
+    const copyState = { ...state }
+    copyState[action.payload.prop] = action.payload.value
+    return copyState
+  }
+  //...
+}
+```
+
+### the trigger..
+- clicking HangupButton causes redux action to trigger `updateCallStatus()`
+- changes state from `idle` to `complete`
+- and that causes the button to hide
+
+```js
+const hangupCall = () => {
+  dispatch(updateCallStatus('current', 'complete'));
+  //...
+}
+```
+
+### index
+- add bootstrap css to index.html (public/)
+
+```js
+//index.html
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+```
+
+- add cdn font icons
+- https://cdnjs.com/libraries/font-awesome
+
+```js
+//index.html
+//...
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+```
+
 ### 50. getUserMedia() and store the stream in redux - (9min)
 ### 51. Create peerConnection and store it in redux - (7min)
 ### 52. Thinking through where our functions belong (& a few bug fixes) - (6min)

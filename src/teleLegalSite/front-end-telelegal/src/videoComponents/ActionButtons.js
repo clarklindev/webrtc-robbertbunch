@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 // import { useDispatch, useSelector } from 'react-redux';
-import HangupButton from './HangupButton'
-import socket from '../webRTCutilities/socketConnection'
 import { useSelector } from 'react-redux';
+import HangupButton from './HangupButton'
+// import socket from '../webRTCutilities/socketConnection';
+
+
 import VideoButton from './VideoButton/VideoButton';
 import AudioButton from './AudioButton/AudioButton';
 
 const ActionButtons = ({ openCloseChat, smallFeedEl, largeFeedEl }) => {
   const callStatus = useSelector(state => state.callStatus);
-  // const callStatus = useSelector(state=>state.callStatus);
   const menuButtons = useRef(null)
   let timer;
 
