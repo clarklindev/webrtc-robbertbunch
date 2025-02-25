@@ -8,6 +8,7 @@ import ChatWindow from './ChatWindow';
 import ActionButtons from './ActionButtons';
 import addStream from '../redux-elements/actions/addStream';
 import { useDispatch } from 'react-redux';
+import createPeerConnection from '../utilities/createPeerConnection';
 
 const MainVideoPage = ()=>{
 
@@ -27,6 +28,12 @@ const MainVideoPage = ()=>{
       try{
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         dispatch(addStream('localStream', stream));
+
+        const {peerConnection, remoteStream} = await createPeerConnection();
+        
+        //we dont know who we are talking to yet...
+        dispatch(addStream('remote1', remoteStream, peerConnection));
+
       }catch(err){
         console.log(err);
       }

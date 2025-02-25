@@ -2932,6 +2932,128 @@ const MainVideoPage = ()=>{
 ```
 
 ### 51. Create peerConnection and store it in redux - (7min)
+- add to streams reducer an additional property: `peerConnection`
+- NOTE: `stream` = thing with tracks that plays in `<video />`
+- NOTE: `peerConnection` = actual webRTC connection
+ - for local, it is undefined
+- addStream() receives `who`, `stream` and `peerConnection`
+
+```js
+//addStream.js
+export default (who, stream, peerConnection)=>{
+  return{
+    type: "ADD_STREAM",
+    payload: {
+      who, 
+      stream,
+      peerConnection // for local, undefined
+    }
+  }
+}
+```
+
+- `utilities/stunServers.js`
+```js
+//utilities/stunServers.js
+let peerConfiguration = {
+  iceServers: [
+    {
+      urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"],
+    },
+  ],
+};
+export default peerConfiguration
+```
+
+- `utilities/createPeerConnection.js`
+- import stunServers (the stun servers  (peerConfiguration))
+
+```js
+//utilities/createPeerConnection.js
+import peerConfiguration from "./stunServers";
+
+const createPeerConnection = (addIce) => {
+  return new Promise(async (resolve, reject) => {
+    const peerConnection = await new RTCPeerConnection(peerConfiguration);
+    //rtcPeerConnection is the connection to the peer.
+    //we may need more than one this time!!
+    //we pass it the config object, which is just stun servers
+    //it will get us ICE candidates
+    const remoteStream = new MediaStream();
+    peerConnection.addEventListener("signalingstatechange", (e) => {
+      console.log("Signaling State Change");
+      console.log(e);
+    });
+    peerConnection.addEventListener("icecandidate", (e) => {
+      console.log("Found ice candidate...");
+      if (e.candidate) {
+        //emit to socket server
+        // addIce(e.candidate);
+      }
+    });
+    // peerConnection.addEventListener("track", (e) => {
+    //   console.log("Got a track from the remote!");
+    //   e.streams[0].getTracks().forEach((track) => {
+    //     remoteStream.addTrack(track, remoteStream);
+    //     console.log("Fingers crossed...");
+    //   });
+    // });
+
+    resolve({
+      peerConnection,
+      remoteStream,
+    });
+  });
+};
+
+export default createPeerConnection;
+
+```
+
+- then in MainVideoPage.js
+- create the peer connection: `const {peerConnection, remoteStream} = createPeerConnection();`
+- gets `peerConnection` and `remoteStream` back
+- make a dispatch `dispatch(addStream('remote1', remoteStream, peerConnection));`
+- we dont know who we are talking to yet...
+  - we will change this `remote1` value 
+- now we have a peerConnection, lets make an offer
+- EXCEPT, its not time yet because
+  - we dont have `SDP` -> information about the feed and we dont have tracks.
+- then call `socket.emit`... 
+
+```js
+// front-end-telelegal/src/videoComponents/MainVideoPage.js
+//...
+  useEffect(()=>{
+    //fetch the user media
+    const fetchMedia = async() =>{
+      const constraints = {
+        video: true,  //atleast one is required, just dont show it yet
+        audio: false
+      }
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        dispatch(addStream('localStream', stream));
+
+        const {peerConnection, remoteStream} = createPeerConnection();
+
+        //we dont know who we are talking to yet...
+        //we will change this `remote1` value 
+        dispatch(addStream('remote1', remoteStream, peerConnection));
+        
+        // - now we have a peerConnection, lets make an offer
+        // - EXCEPT, its not time yet because
+        //   - we dont have `SDP` -> information about the feed and we dont have tracks.
+        // - then call `socket.emit`... 
+      }catch(err){
+        console.log(err);
+      }
+    }
+    fetchMedia();
+  }, []);
+
+```
+
 ### 52. Thinking through where our functions belong (& a few bug fixes) - (6min)
 ### 53. Abstracting the Video and Audio buttons - (8min)
 ### 54. Adding the local video feed - (10min)
