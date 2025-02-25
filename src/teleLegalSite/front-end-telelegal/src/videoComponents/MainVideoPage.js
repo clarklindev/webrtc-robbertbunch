@@ -6,12 +6,15 @@ import './VideoComponents.css';
 import CallInfo from './CallInfo';
 import ChatWindow from './ChatWindow';
 import ActionButtons from './ActionButtons';
+import addStream from '../redux-elements/actions/addStream';
+import { useDispatch } from 'react-redux';
 
 const MainVideoPage = ()=>{
 
   //grab query string finder hook
   const [searchParams, setSearchParams] = useSearchParams();
   const [apptInfo, setApptInfo] = useState({});
+  const dispatch = useDispatch();
 
 
   useEffect(()=>{
@@ -23,6 +26,7 @@ const MainVideoPage = ()=>{
       }
       try{
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        dispatch(addStream('localStream', stream));
       }catch(err){
         console.log(err);
       }

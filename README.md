@@ -2814,7 +2814,122 @@ const hangupCall = () => {
 
 ### 50. getUserMedia() and store the stream in redux - (9min)
 - request permission to allow camera and microphone
-- 
+- figuring out the order of requesting to getUserMedia()
+  - request for permission at start but dont show feed until user engages with `join audio` and `join video` 
+- REQUIRED: atleast one constraint is required, just dont show it yet
+- TODO: create a reducer to store the stream: `streamsReducer.js`
+
+```js
+//front-end-telelegal/src/videoComponents/MainVideoPage.js
+const MainVideoPage = ()=>{
+
+//...
+  useEffect(()=>{
+    //fetch the user media
+    const fetchMedia = async() =>{
+      const constraints = {
+        video: true,  //atleast one is required, just dont show it yet
+        audio: false
+      }
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      }catch(err){
+        console.log(err);
+      }
+    }
+    fetchMedia();
+  }, []);
+
+  //..
+}
+```
+
+
+- create streamsReducer
+```js
+//src/redux-elements/reducers/streamReducers.js
+
+//this holds all streams as objects
+//{
+    // who
+    // stream = thing with tracks that plays in <video />
+    // peerConnection = actual webRTC connection
+// }
+//eg. local, remote1, remote2+
+export default (state = {}, action)=>{
+  if(action.type === "ADD_STREAM"){
+    const copyState = {...state};
+    copyState[action.payload.who] = action.payload
+    return copyState
+  }else if(action.type === "LOGOUT_ACTION"){
+    return {}
+  }else{
+    return state;
+  }
+}
+```
+- create an action for `ADD_STREAM`
+
+```js
+export default (who,stream,peerConnection)=>{
+  return {
+    type: "ADD_STREAM",
+    payload: {
+      who, 
+      stream,
+      peerConnection // for local, undefined
+    }
+  }
+}
+```
+- add streamsReducer to rootReducer
+
+```js
+//src/redux-elements/reducers/rootReducer.js
+
+import { combineReducers } from "redux";
+import callStatusReducer from './callStatusReducer';
+import streamsReducer from "./streamsReducer";
+
+const rootReducer = combineReducers({
+  callStatus: callStatusReducer,
+  streams: streamsReducer
+});
+
+export default rootReducer;
+```
+
+- todo: import `addStream` action to MainVideoPage.js
+
+```js
+//MainVideoPage.js
+//...
+
+import addStream from '../redux-elements/actions/addStream';
+import { useDispatch } from 'react-redux';
+
+const MainVideoPage = ()=>{
+  //...
+  const dispatch = useDispatch();
+
+  //...
+  useEffect(()=>{
+    const fetchMedia = async() =>{
+      //...
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        //dispatch sends this function to redux dispatch (all reducers notified)
+        dispatch(addStream('localStream', stream));
+      }
+      catch(err){
+      }
+    }
+
+    fetchMedia();
+
+  }, [] )
+}
+```
 
 ### 51. Create peerConnection and store it in redux - (7min)
 ### 52. Thinking through where our functions belong (& a few bug fixes) - (6min)
