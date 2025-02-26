@@ -3055,6 +3055,62 @@ export default createPeerConnection;
 ```
 
 ### 52. Thinking through where our functions belong (& a few bug fixes) - (6min)
+- fixing some code we did...
+- ERROR: `reducer streams for streams is returning undefined`
+- FIX: frontend /src/redux-elements/reducers/streamsReducer -> state has to have an initial value (give it empty object {})
+  - `export default (state = {}, action)=>{}`
+
+<img
+src='exercise_files/section05-webrtc+react-52-reducer-bug-fix.png'
+alt='section05-webrtc+react-52-reducer-bug-fix.png'
+width=600
+/>
+
+- videoComponents/CallInfo.js
+- FIX: remove the console.log -> too many logs added to console
+
+```js
+//frontend src/videoComponents/CallInfo.js
+useEffect(() => {
+
+  const timeInterval = setInterval(() => {
+    setMomentText(moment(apptInfo.apptDate).fromNow())
+    // console.log("Updating time")
+  }, 5000)
+
+},[]);
+
+```
+
+- MainVideoPage.js and ActionButtons.js
+- import `socket` from `socketConnection` so we can use it...
+
+```js
+//src/videoComponents/MainVideoPage.js
+import socket from '../utilities/socketConnection';
+
+//...
+useEffect(()=>{
+  //fetch the user media
+  const fetchMedia = async() =>{
+    // - then call `socket.emit`...
+
+  }
+  fetchMedia();
+});
+```
+- socketConnection we need to export it
+- utilities/socketConnection.js
+
+```js
+//frontend src/utilities/socketConnection.js
+import {io} from 'socket.io-client';
+const socket = io.connect('https://localhost:9000');
+export default socket;
+```
+
+- update `utilities/` folder to `webRTCutilities/`
+
 ### 53. Abstracting the Video and Audio buttons - (8min)
 ### 54. Adding the local video feed - (10min)
 ### 55. Add our tracks to the peerConnection - (8min)

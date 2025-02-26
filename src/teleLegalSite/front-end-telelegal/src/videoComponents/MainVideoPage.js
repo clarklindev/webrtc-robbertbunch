@@ -8,7 +8,8 @@ import ChatWindow from './ChatWindow';
 import ActionButtons from './ActionButtons';
 import addStream from '../redux-elements/actions/addStream';
 import { useDispatch } from 'react-redux';
-import createPeerConnection from '../utilities/createPeerConnection';
+import createPeerConnection from '../webRTCutilities/createPeerConnection';
+import socket from '../webRTCutilities/socketConnection';
 
 const MainVideoPage = ()=>{
 
@@ -32,7 +33,13 @@ const MainVideoPage = ()=>{
         const {peerConnection, remoteStream} = await createPeerConnection();
         
         //we dont know who we are talking to yet...
+        //we will change this `remote1` value 
         dispatch(addStream('remote1', remoteStream, peerConnection));
+
+        // - now we have a peerConnection, lets make an offer
+        // - EXCEPT, its not time yet because
+        //   - we dont have `SDP` -> information about the feed and we dont have tracks.
+        // - then call `socket.emit`... 
 
       }catch(err){
         console.log(err);

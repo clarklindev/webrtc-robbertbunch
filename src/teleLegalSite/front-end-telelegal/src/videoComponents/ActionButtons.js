@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 // import { useDispatch, useSelector } from 'react-redux';
 import { useSelector } from 'react-redux';
 import HangupButton from './HangupButton'
-// import socket from '../webRTCutilities/socketConnection';
+import socket from '../webRTCutilities/socketConnection';
 
 
 import VideoButton from './VideoButton/VideoButton';

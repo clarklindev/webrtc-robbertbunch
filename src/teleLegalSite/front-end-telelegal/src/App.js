@@ -1,5 +1,5 @@
 import {BrowserRouter, Routes, Route, Link} from 'react-router-dom';
-import socketConnection from './utilities/socketConnection';
+import socketConnection from './webRTCutilities/socketConnection';
 import MainVideoPage from './videoComponents/MainVideoPage';
 import './App.css';
 
