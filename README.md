@@ -3112,6 +3112,342 @@ export default socket;
 - update `utilities/` folder to `webRTCutilities/`
 
 ### 53. Abstracting the Video and Audio buttons - (8min)
+#### running the app
+
+1. start up backend
+2. start up frontend
+3. visit https://localhost:9000/user-link
+4. copy the generated url: https://localhost:3000/join-video?token=
+5. visit url
+
+#### MainVideoPage
+- NOTE: `redux-elements/reducers/callStatusReducer`
+  - has a state `haveMedia` (default `false`)
+  - we want to update this after getUserMedia() called 
+  - `import updateCallStatus from '../redux-elements/actions/updateCallStatus.js';`
+  - `updateCallStatus()` receives `prop` and `value` set `haveMedia` to true
+
+```js
+import updateCallStatus from '../redux-elements/actions/updateCallStatus.js';
+
+fetchMedia(){
+  //...
+  //here we create the stream with requests getUserMedia
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  dispatch(updateCallStatus(`haveMedia`, true)) //update call status reducer to know we have the media
+
+  //...
+}
+```
+#### useRef for DOM elements
+- this part deals with adding/giving references (react ref) to feed windows elements (small and large)
+
+```js
+import {useRef} from 'react';
+
+//...
+
+const smallFeedEl = useRef(null); //react ref to DOM element
+const largeFeedEl = useRef(null);
+
+//...
+
+return (
+  <video 
+    id="large-feed" ref={largeFeedEl} 
+    //...
+  />
+  <video 
+    id="own-feed" ref={smallFeedEl} 
+    //...
+  />
+
+  <ActionButtons/>
+)
+
+```
+
+### ActionButtons
+
+#### VideoButton
+- cut `VideoButton` from action buttons 
+- `videoComponents/VideoButton/VideoButton.js`
+- NOTE: this file has already been created/added
+- in `<ActionButtons/>` use `<VideoButton/>`
+
+```js
+//frontend -> /src/videoComponents/VideoButton/VideoButton.js
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from 'react';
+import startLocalVideoStream from "./startLocalVideoStream";
+import updateCallStatus from "../../redux-elements/actions/updateCallStatus";
+import getDevices from "./getDevices";
+import addStream from "../../redux-elements/actions/addStream";
+import ActionButtonCaretDropDown from "../ActionButtonCaretDropDown";
+
+const VideoButton = ({ smallFeedEl }) => {
+
+  const dispatch = useDispatch();
+  const callStatus = useSelector(state => state.callStatus)
+  
+  const streams = useSelector(state => state.streams);
+  const [pendingUpdate, setPendingUpdate] = useState(false);
+  const [caretOpen, setCaretOpen] = useState(false);
+  const [videoDeviceList, setVideoDeviceList] = useState([])
+
+  const DropDown = () => {
+
+  }
+
+  useEffect(() => {
+    const getDevicesAsync = async () => {
+      if (caretOpen) {
+        //then we need to check for video devices
+        const devices = await getDevices();
+        console.log(devices.videoDevices)
+        setVideoDeviceList(devices.videoDevices)
+      }
+    }
+    getDevicesAsync()
+  }, [caretOpen])
+
+  const changeVideoDevice = async (e) => {
+    //the user changed the desired video device 
+    //1. we need to get that deviceId
+    const deviceId = e.target.value;
+    // console.log(deviceId)
+    //2. we need to getUserMedia (permission)
+    const newConstraints = {
+      audio: callStatus.audioDevice === "default" ? true : { deviceId: { exact: callStatus.audioDevice } },
+      video: { deviceId: { exact: deviceId } }
+    }
+    const stream = await navigator.mediaDevices.getUserMedia(newConstraints)
+    //3. update Redux with that videoDevice, and that video is enabled
+    dispatch(updateCallStatus('videoDevice', deviceId));
+    dispatch(updateCallStatus('video', 'enabled'))
+    //4. update the smallFeedEl
+    smallFeedEl.current.srcObject = stream;
+    //5. we need to update the localStream in streams
+    dispatch(addStream('localStream', stream))
+    //6. add tracks
+    const [videoTrack] = stream.getVideoTracks();
+    //come back to this later
+    //if we stop the old tracks, and add the new tracks, that will mean
+    // ... renegotiation
+    for (const s in streams) {
+      if (s !== "localStream") {
+        //getSenders will grab all the RTCRtpSenders that the PC has
+        //RTCRtpSender manages how tracks are sent via the PC
+        const senders = streams[s].peerConnection.getSenders();
+        //find the sender that is in charge of the video track
+        const sender = senders.find(s => {
+          if (s.track) {
+            //if this track matches the videoTrack kind, return it
+            return s.track.kind === videoTrack.kind
+          } else {
+            return false;
+          }
+        })
+        //sender is RTCRtpSender, so it can replace the track
+        sender.replaceTrack(videoTrack)
+      }
+    }
+
+  }
+
+  const startStopVideo = () => {
+    // console.log("Sanity Check")
+    //first, check if the video is enabled, if so disabled
+    if (callStatus.video === "enabled") {
+      //update redux callStatus
+      dispatch(updateCallStatus('video', "disabled"));
+      //set the stream to disabled
+      const tracks = streams.localStream.stream.getVideoTracks();
+      tracks.forEach(t => t.enabled = false);
+    } else if (callStatus.video === "disabled") {
+      //second, check if the video is disabled, if so enable
+      //update redux callStatus
+      dispatch(updateCallStatus('video', "enabled"));
+      const tracks = streams.localStream.stream.getVideoTracks();
+      tracks.forEach(t => t.enabled = true);
+    } else if (callStatus.haveMedia) {
+      //thirdly, check to see if we have media, if so, start the stream
+      //we have the media! show the feed
+      smallFeedEl.current.srcObject = streams.localStream.stream
+      //add tracks to the peerConnections
+      startLocalVideoStream(streams, dispatch);
+    } else {
+      //lastly, it is possible, we dont have the media, wait for the media, then start the stream
+      setPendingUpdate(true);
+    }
+  }
+
+  useEffect(() => {
+    if (pendingUpdate && callStatus.haveMedia) {
+      console.log('Pending update succeeded!')
+      //this useEffect will run if pendingUpdate changes to true!
+      setPendingUpdate(false) // switch back to false
+      smallFeedEl.current.srcObject = streams.localStream.stream
+      startLocalVideoStream(streams, dispatch);
+    }
+  }, [pendingUpdate, callStatus.haveMedia])
+
+  return (
+    <div className="button-wrapper video-button d-inline-block">
+      <i className="fa fa-caret-up choose-video" onClick={() => setCaretOpen(!caretOpen)}></i>
+      <div className="button camera" onClick={startStopVideo}>
+        <i className="fa fa-video"></i>
+        <div className="btn-text">{callStatus.video === "enabled" ? "Stop" : "Start"} Video</div>
+      </div>
+      {caretOpen ? <ActionButtonCaretDropDown
+        defaultValue={callStatus.videoDevice}
+        changeHandler={changeVideoDevice}
+        deviceList={videoDeviceList}
+        type="video"
+      /> : <></>}
+    </div>
+  )
+}
+export default VideoButton;
+```
+
+#### AudioButton
+- frontend -> `videoComponents/AudioButton/AudioButton.js`
+- in `<ActionButtons/>` use `<AudioButton />`
+
+```js
+//frontend -> src/videoComponents/AudioButton/AudioButton.js
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux"
+import ActionButtonCaretDropDown from "../ActionButtonCaretDropDown";
+import getDevices from "../VideoButton/getDevices";
+import updateCallStatus from "../../redux-elements/actions/updateCallStatus";
+import addStream from "../../redux-elements/actions/addStream";
+import startAudioStream from "./startAudioStream";
+
+const AudioButton = ({ smallFeedEl }) => {
+
+  const dispatch = useDispatch()
+  const callStatus = useSelector(state => state.callStatus);
+  const streams = useSelector(state => state.streams);
+  const [caretOpen, setCaretOpen] = useState(false);
+  const [audioDeviceList, setAudioDeviceList] = useState([]);
+
+  let micText;
+  if (callStatus.audio === "off") {
+    micText = "Join Audio"
+  } else if (callStatus.audio === "enabled") {
+    micText = "Mute"
+  } else {
+    micText = "Unmute"
+  }
+
+  useEffect(() => {
+    const getDevicesAsync = async () => {
+      if (caretOpen) {
+        //then we need to check for audio devices
+        const devices = await getDevices();
+        console.log(devices.videoDevices)
+        setAudioDeviceList(devices.audioOutputDevices.concat(devices.audioInputDevices))
+      }
+    }
+    getDevicesAsync()
+  }, [caretOpen])
+
+  const startStopAudio = () => {
+    //first, check if the audio is enabled, if so disabled
+    if (callStatus.audio === "enabled") {
+      //update redux callStatus
+      dispatch(updateCallStatus('audio', "disabled"));
+      //set the stream to disabled
+      const tracks = streams.localStream.stream.getAudioTracks();
+      tracks.forEach(t => t.enabled = false);
+    } else if (callStatus.audio === "disabled") {
+      //second, check if the audio is disabled, if so enable
+      //update redux callStatus
+      dispatch(updateCallStatus('audio', "enabled"));
+      const tracks = streams.localStream.stream.getAudioTracks();
+      tracks.forEach(t => t.enabled = true);
+    } else {
+      //audio is "off" What do we do?
+      changeAudioDevice({ target: { value: "inputdefault" } })
+      //add the tracks 
+      startAudioStream(streams);
+    }
+  }
+
+  const changeAudioDevice = async (e) => {
+    //the user changed the desired ouput audio device OR input audio device
+    //1. we need to get that deviceId AND the type
+    const deviceId = e.target.value.slice(5);
+    const audioType = e.target.value.slice(0, 5);
+    console.log(e.target.value)
+
+    if (audioType === "output") {
+      //4 (sort of out of order). update the smallFeedEl
+      //we are now DONE! We dont care about the output for any other reason
+      smallFeedEl.current.setSinkId(deviceId);
+    } else if (audioType === "input") {
+      //2. we need to getUserMedia (permission) 
+      const newConstraints = {
+        audio: { deviceId: { exact: deviceId } },
+        video: callStatus.videoDevice === "default" ? true : { deviceId: { exact: callStatus.videoDevice } },
+      }
+      const stream = await navigator.mediaDevices.getUserMedia(newConstraints)
+      //3. update Redux with that videoDevice, and that video is enabled
+      dispatch(updateCallStatus('audioDevice', deviceId));
+      dispatch(updateCallStatus('audio', 'enabled'))
+      //5. we need to update the localStream in streams
+      dispatch(addStream('localStream', stream))
+      //6. add tracks - actually replaceTracks
+      const [audioTrack] = stream.getAudioTracks();
+      //come back to this later
+
+      for (const s in streams) {
+        if (s !== "localStream") {
+          //getSenders will grab all the RTCRtpSenders that the PC has
+          //RTCRtpSender manages how tracks are sent via the PC
+          const senders = streams[s].peerConnection.getSenders();
+          //find the sender that is in charge of the video track
+          const sender = senders.find(s => {
+            if (s.track) {
+              //if this track matches the videoTrack kind, return it
+              return s.track.kind === audioTrack.kind
+            } else {
+              return false;
+            }
+          })
+          //sender is RTCRtpSender, so it can replace the track
+          sender.replaceTrack(audioTrack)
+        }
+      }
+
+    }
+  }
+
+  return (
+    <div className="button-wrapper d-inline-block">
+      <i className="fa fa-caret-up choose-audio" onClick={() => setCaretOpen(!caretOpen)}></i>
+      <div className="button mic" onClick={startStopAudio}>
+        <i className="fa fa-microphone"></i>
+        <div className="btn-text">{micText}</div>
+      </div>
+      {caretOpen ? <ActionButtonCaretDropDown
+        defaultValue={callStatus.audioDevice}
+        changeHandler={changeAudioDevice}
+        deviceList={audioDeviceList}
+        type="audio"
+      /> : <></>}
+    </div>
+  )
+}
+
+export default AudioButton
+```
+
+#### Outcome
+- the carrot buttons have their own eventListener and highlight when hovered over
+
 ### 54. Adding the local video feed - (10min)
 ### 55. Add our tracks to the peerConnection - (8min)
 ### 56. Enable and disable (mute) the local video feed - (6min)

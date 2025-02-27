@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useRef} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import axios from 'axios';
 
@@ -13,11 +13,13 @@ import socket from '../webRTCutilities/socketConnection';
 
 const MainVideoPage = ()=>{
 
+  const dispatch = useDispatch();
   //grab query string finder hook
   const [searchParams, setSearchParams] = useSearchParams();
   const [apptInfo, setApptInfo] = useState({});
-  const dispatch = useDispatch();
-
+  const smallFeedEl = useRef(null); //react ref to DOM element
+  const largeFeedEl = useRef(null);
+ 
 
   useEffect(()=>{
     //fetch the user media
@@ -28,6 +30,8 @@ const MainVideoPage = ()=>{
       }
       try{
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        dispatch(updateCallStatus(`haveMedia`, true)); //update callStatusReducer to know we have the media
+
         dispatch(addStream('localStream', stream));
 
         const {peerConnection, remoteStream} = await createPeerConnection();
@@ -67,8 +71,8 @@ const MainVideoPage = ()=>{
     <div clasName = "main-video-Page">
       <div className="video-chat-wrapper">
         {/* div to hold remote video AND local video, AND chat window */}
-        <video id="large-feed" autoPlay controls playsInline></video>
-        <video id="own-feed" autoPlay controls playsInline></video>
+        <video id="large-feed" ref={largeFeedEl} autoPlay controls playsInline></video>
+        <video id="own-feed" ref={smallFeedEl} autoPlay controls playsInline></video>
         {
           apptInfo.professionalsFullName ? <CallInfo apptInfo={apptInfo} /> : <></>
         }
