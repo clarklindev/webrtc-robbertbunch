@@ -10,6 +10,7 @@ import addStream from '../redux-elements/actions/addStream';
 import { useDispatch } from 'react-redux';
 import createPeerConnection from '../webRTCutilities/createPeerConnection';
 import socket from '../webRTCutilities/socketConnection';
+import updateCallStatus from '../redux-elements/actions/updateCallStatus';
 
 const MainVideoPage = ()=>{
 
@@ -79,7 +80,7 @@ const MainVideoPage = ()=>{
         <ChatWindow/>
       </div>
       
-      <ActionButtons/>
+      <ActionButtons smallFeedEl={smallFeedEl}/>
     </div>
     
     

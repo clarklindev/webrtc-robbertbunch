@@ -1,9 +1,19 @@
-import {BrowserRouter, Routes, Route, Link} from 'react-router-dom';
+import {BrowserRouter, Routes, Route  } from 'react-router-dom';
 import socketConnection from './webRTCutilities/socketConnection';
 import MainVideoPage from './videoComponents/MainVideoPage';
+import ExternalRedirect from './utilities/ExternalRedirect';
 import './App.css';
 
-const Home = () => <h1>Home page</h1>
+const Home = ()=>{
+  return (
+  <>
+    <h1>Home page</h1>
+    <div>
+      Visit <a href="https://localhost:9000/user-link" target="_blank" rel="noopener noreferrer">User Link</a>
+    </div>
+  </>
+  )
+}
 
 function App() {
   return (

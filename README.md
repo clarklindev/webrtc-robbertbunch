@@ -2061,6 +2061,17 @@ const socket = io.connect('https://192.168.1.104:8181/, {
 - ngrok will provide you a publicly accessible HTTPS URL, like:
 ---
 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
+
 ## Section 04 - WebRTC Process review - review it
 ### 38. The Process (on the board) - (24min)
 - NOTE: very important lessons and should be watched before section3
@@ -2075,6 +2086,18 @@ const socket = io.connect('https://192.168.1.104:8181/, {
 - Learners should watch this...and come back to it and watch it until the learner undestands the flow of webRTC, and i feel it is crucial that this happens before a deep dive covered in section3: rtcPeerConnection
 
 ---
+
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
 
 ## Section 05 - webRTC and React - TeleLegal site
 ### 40. Project Demo - (6min)
@@ -3448,7 +3471,112 @@ export default AudioButton
 #### Outcome
 - the carrot buttons have their own eventListener and highlight when hovered over
 
+
 ### 54. Adding the local video feed - (10min)
+- getting the local video feed to show (small video component)
+- VideoButton.js
+  1. check if the video is `enabled`, if so `disabled`
+  2. check if the video is `disabled`, if so `enable`
+  3. check to see if we `have media`, if so, `start the stream`
+    - we can check if we have media via root reducer -> `callStatus` which references ( callStatusReducer - `haveMedia`)
+    - in `MainVideoPage`, we can pass the DOM element `smallFeedEl` into `<ActionButtons smallFeedEl={smallFeedEl}/>`
+    - then in `<ActionButtons>` pass smallFeedEl in as a prop, so the component passes that down to `<VideoButton smallFeedEl={smallFeedEl}>`
+    - then in VideoButton receive the prop `smallFeedEl`
+    - and set current reference's `srcObject`
+  - NOTE: `import { useDispatch, useSelector } from "react-redux"`
+    - useSelector -> react-redux ... It takes in a function argument that returns the part of the state that you want. 
+    - useDispatch -> react-redux ... useDispatch is a hook provided by react-redux that gives you access to the dispatch function. This function allows you to send actions to the Redux store. `const dispatch = useDispatch();`
+    
+    - After obtaining dispatch using useDispatch, you can call it with an action.
+    - An action is usually an object with at least two properties:
+    - type: a string describing what the action is doing.
+    - payload (optional): additional data that the action will carry along, which is sent to the reducer for state modification.
+    - example of using redux dispatch:
+    ```js
+        const handleClick = () => {
+          dispatch({
+            type: 'ADD_TODO',
+            payload: { text: 'Learn Redux' }
+          });
+        };
+    ```
+
+  - get access to the stream
+  
+    ```js
+    const VideoButton = ({ smallFeedEl }) => {
+      //...
+      const streams = useSelector(state=> state.streams);
+      
+      const startStopVideo = ()=>{
+        if(callStatus.haveMedia){
+          smallFeedEl.current.srcObject = streams.localstream;
+        }
+      }
+    }
+    ```
+  4. it is possible, we `dont have the media`, `wait` for the media, `then start` the stream
+
+- get access the streams...
+- then we set srcObject for the video Element: `smallFeedEl.current.srcObject = streams.localStream.stream`
+- NOTE: `localStream` is the `who` in streamsReducer - ie. what we called it...
+- we set localStream in MainVideoPage:
+```js
+//MainVideoPage.js
+//...
+const stream = await navigator.mediaDevices.getUserMedia(constraints);
+//dispatch sends this function to redux dispatch (all reducers notified)
+dispatch(addStream('localStream', stream));
+```
+- so to get the stream we get `localStream.stream`
+- `smallFeedEl.current.srcObject = streams.localStream.stream;`
+
+```js
+//VideoButton.js
+const callStatus = useSelector(state => state.callStatus)
+const streams = useSelector(state=> state.streams);
+
+const startStopVideo = () => {
+  // console.log("Sanity Check")
+
+  //1. check if the video is enabled, if so disabled
+  if (callStatus.video === "enabled") {
+    //update redux callStatus
+    dispatch(updateCallStatus('video', "disabled"));
+    //set the stream to disabled
+    const tracks = streams.localStream.stream.getVideoTracks();
+    tracks.forEach(t => t.enabled = false);
+  } 
+  
+  //2. check if the video is disabled, if so enable
+  else if (callStatus.video === "disabled") {
+    //update redux callStatus
+    dispatch(updateCallStatus('video', "enabled"));
+    const tracks = streams.localStream.stream.getVideoTracks();
+    tracks.forEach(t => t.enabled = true);
+  } 
+  
+  
+  //3. check to see if we have media, if so, start the stream
+  else if (callStatus.haveMedia) {
+    //we have the media! show the feed
+    smallFeedEl.current.srcObject = streams.localStream.stream;
+    //add tracks to the peerConnections
+    startLocalVideoStream(streams, dispatch);
+  } 
+  
+  //4. it is possible, we dont have the media, wait for the media, then start the stream
+  else {
+    setPendingUpdate(true);
+  }
+}
+
+return (
+  //...
+  <div className="button camera" onClick={startStopVideo}>
+)
+```
+
 ### 55. Add our tracks to the peerConnection - (8min)
 ### 56. Enable and disable (mute) the local video feed - (6min)
 ### 57. Display local video inputs (camera options) - (11min)

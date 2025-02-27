@@ -93,7 +93,7 @@ const VideoButton = ({ smallFeedEl }) => {
     } else if (callStatus.haveMedia) {
       //thirdly, check to see if we have media, if so, start the stream
       //we have the media! show the feed
-      smallFeedEl.current.srcObject = streams.localStream.stream
+      smallFeedEl.current.srcObject = streams.localStream.stream;
       //add tracks to the peerConnections
       startLocalVideoStream(streams, dispatch);
     } else {
