@@ -3616,10 +3616,67 @@ const startStopVideo = () => {
 
 ### 55. Add our tracks to the peerConnection - (8min)
 #### VideoButton/startLocalVideoStream
-- startStopVideo -> we also need to add tracks to the peerConnections (note: there is no need for localStream, only need to add tracks to the other peerConnection)
-- this functions job is to update all peerConnections (addTracks) and update redux callStatus
-- so the localVideo Stream does not need to add tracks to peerConnection
+- startStopVideo -> we also need to add tracks to the peerConnections 
+- note: there is no need for adding track forlocalStream, only need to add tracks to the other peerConnection
+- `startLocalVideoStream()` -> functions job is to update all peerConnections (addTracks) and update redux callStatus
+  - required: streams
+  - required: dispatch
+  - NOTE: from `VideoButton` 
+    - we have to pass these props into the `startLocalVideoStream()` 
+    - because startLocalVideoStream() is just a function and cannot use hooks 
+      - `useDispatch` to get `dispatch()` to update redux `callStatusReducer`
+      - `useSelector` to get `streams` (peerConnections) ...see `streamsReducer`
 
+```js
+//src/videoComponents/VideoButton/VideoButton
+import {useDispatch, useSelector} from 'react-redux';
+import startLocalVideoStream from "./startLocalVideoStream";
+
+//...
+const dispatch = useDispatch();
+const streams = useSelector(state=>state.streams);
+
+//...
+if(callStatus.haveMedia){
+  //3. check to see if we have media, if so, start the stream
+  //we have the media! show the feed
+  smallFeedEl.current.srcObject = streams.localStream.stream;
+  //add tracks to the peerConnections
+  startLocalVideoStream(streams, dispatch);
+}
+```
+
+#### startLocalVideoStream
+- we need streams because if you go to `redux-elements/reducers/streamsReducer.js` its state properties are `who`, `stream`, `peerConnection`
+- so separate localStream from streams...
+- then for every other stream, add localStream's tracks add to its peerConnection.addTrack
+- then update redux call status `dispatch(updateCallStatus('video', "enabled"))`
+  - NOTE: callStatusReducer: `video` and `audio` status is NOT `boolean` anymore and should be updated 
+  - video/audio feed status: `off` `enabled` `disabled` `complete`
+
+```js
+//src/videoComponents/VideoButton/startLocalVideoStream.js
+//this functions job is to update all *(`streams` for) peerConnections (addTracks) and *(`dispatch` to) update redux callStatus
+import updateCallStatus from "../../redux-elements/actions/updateCallStatus";
+
+const startLocalVideoStream = (streams, dispatch) => {
+  const localStream = streams.localStream;
+  for (const s in streams) { //s is the key *(streamsReducer -> who)
+    if (s !== "localStream") {
+      //we don't addTracks to the localStream
+      const curStream = streams[s];
+      //addTracks to all peerConnections
+      localStream.stream.getVideoTracks().forEach(t => {
+        curStream.peerConnection.addTrack(t, streams.localStream.stream);
+      })
+      //update redux callStatus
+      dispatch(updateCallStatus('video', "enabled"));
+    }
+
+  }
+}
+export default startLocalVideoStream;
+```
 ### 56. Enable and disable (mute) the local video feed - (6min)
 ### 57. Display local video inputs (camera options) - (11min)
 ### 58. Set new video device on select - (7min)
