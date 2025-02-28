@@ -26,7 +26,7 @@ app.get('/user-link', (req, res)=>{
   const token = jwt.sign(appData, linkSecret);
 
   //sent to wherever react is running..
-  res.send('https://localhost:3000/join-video?token='+token);
+  res.send(`<a href="https://localhost:3000/join-video?token=${token}">invite link</a>`);
 });
 
 app.post('/validate-link', (req, res)=>{
