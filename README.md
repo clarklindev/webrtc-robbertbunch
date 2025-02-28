@@ -3473,7 +3473,8 @@ export default AudioButton
 
 
 ### 54. Adding the local video feed - (10min)
-- getting the local video feed to show (small video component)
+
+#### part 1 - getting the local video feed to show (small video component)
 - VideoButton.js
   1. check if the video is `enabled`, if so `disabled`
   2. check if the video is `disabled`, if so `enable`
@@ -3519,7 +3520,7 @@ export default AudioButton
 
 - get access the streams...
 - then we set srcObject for the video Element: `smallFeedEl.current.srcObject = streams.localStream.stream`
-- NOTE: `localStream` is the `who` in streamsReducer - ie. what we called it...
+- NOTE: the `streams` `who` is the `localStream` we set in streamsReducer - ie. what we called it...
 - we set localStream in MainVideoPage:
 ```js
 //MainVideoPage.js
@@ -3576,8 +3577,49 @@ return (
   <div className="button camera" onClick={startStopVideo}>
 )
 ```
+#### part 2 - ...we dont have the media, wait for the media, then start the stream
+- NOTE: this scenario, user clicks video button really fast, before the media has loaded (stream hasnt finished loading (ie. getUserMedia))
+- add react useState to track this
+- add useEffect that runs on `pendingUpdate` change (will run if pendingUpdate changes eg. to true)
+- and when pendingUpdate updates, setPendingUpdate to false
+- both conditions need to be true:
+- the dependencies are both `pendingUpdate` (beceause its possible that we dont have media before stream starts) AND 
+- other dependency is `callStatus.haveMedia` because this updates after we have media
+- set srcObject to localStream.stream: `smallFeedEl.current.srcObject = streams.localStream.stream`
+- call action `startLocalVideoStream` once we have both `startLocalVideoStream(streams, dispatch);`
+
+```js
+//VideoButton.js
+const [pendingUpdate, setPendingUpdate] = useState(false);
+
+//...
+const startStopVideo = () => {
+  //...
+
+  //4. it is possible, we dont have the media, wait for the media, then start the stream
+  else {
+    setPendingUpdate(true);
+  }
+
+  useEffect(() => {
+    if (pendingUpdate && callStatus.haveMedia) {
+      console.log('Pending update succeeded!')
+      //this useEffect will run if pendingUpdate changes to true!
+      setPendingUpdate(false) // switch back to false
+      smallFeedEl.current.srcObject = streams.localStream.stream
+      startLocalVideoStream(streams, dispatch);
+    }
+  }, [pendingUpdate, callStatus.haveMedia])
+
+}
+```
 
 ### 55. Add our tracks to the peerConnection - (8min)
+#### VideoButton/startLocalVideoStream
+- startStopVideo -> we also need to add tracks to the peerConnections (note: there is no need for localStream, only need to add tracks to the other peerConnection)
+- this functions job is to update all peerConnections (addTracks) and update redux callStatus
+- so the localVideo Stream does not need to add tracks to peerConnection
+
 ### 56. Enable and disable (mute) the local video feed - (6min)
 ### 57. Display local video inputs (camera options) - (11min)
 ### 58. Set new video device on select - (7min)
