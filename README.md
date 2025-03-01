@@ -3798,6 +3798,47 @@ export default getDevices
 ```
 
 ### 58. Set new video device on select - (7min)
+- the user changed the desired video device 
+- get getUserMedia again (permission)
+  - audio: callStatus.audioDevice === 'default' ? true : {deviceId: {exact: callStatus.audioDevice}}
+    - if the user hasnt changed it from default, use `true`
+    - if they have changed it, then we use it this way: `{deviceId: {exact: callStatus.audioDevice}}`
+  - video: {deviceId: {exact: deviceId}}
+- grab stream passing-in new constraints
+- 5. we need to update the stream calling `addStream()`
+
+```js
+//...
+import addStream from "../../redux-elements/actions/addStream";
+
+//...
+const changeVideoDevice = async (e)=>{
+  //1. we need to get that deviceId
+  const deviceId = e.target.value;  //device id
+  
+  //2. we need to getUserMedia (permission) again
+  const newConstraints = {
+    audio: callStatus.audioDevice === 'default' ? true : {deviceId: {exact: callStatus.audioDevice}},
+    video: {deviceId: {exact: deviceId}}
+  }
+
+  //grab stream passing-in new constraints
+  const stream = await navigator.mediaDevices.getUserMedia(newConstraints);
+
+  //3. update Redux with that videoDevice, and that video is enabled
+  dispatch(updateCallStatus('videoDevice', deviceId));
+  //4. update the smallFeedEl
+  smallFeedEl.current.srcObject = stream;
+  //5. we need to update the localStream in streams
+  dispatch(addStream('localstream', stream));
+  
+  //6. add tracks
+}
+ 
+
+
+```
+
 ### 59. replaceTracks() - (8min)
 ### 60. Abstract DropDown component - (3min)
 ### 61. Set up AudioButton component - (11min)
