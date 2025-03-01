@@ -16,7 +16,7 @@ const VideoButton = ({ smallFeedEl }) => {
   const [videoDeviceList, setVideoDeviceList] = useState([])
 
   const DropDown = () => {
-
+    
   }
 
   useEffect(() => {

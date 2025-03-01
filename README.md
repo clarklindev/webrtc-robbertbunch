@@ -3716,6 +3716,87 @@ if (callStatus.video === "enabled") {
 ```
 
 ### 57. Display local video inputs (camera options) - (11min)
+- this step deals with the video button carrot (toggle carrot menu)
+- the purpose of this is so we can use `caretOpen` to show/hide dropdown component
+- NOTE: `ActionButtonCaretDropDown.js`
+
+```js
+//VideoButton
+
+  <ActionButtonCaretDropDown
+    defaultValue={callStatus.videoDevice}
+    changeHandler={changeVideoDevice}
+    deviceList={videoDeviceList}
+    type="video"
+  />
+```
+
+```js
+//VideoButton
+
+const VideoButton = ({ smallFeedEl }) => {
+  //...
+
+  const [caretOpen, setCaretOpen] = useState(false);
+  const [videoDeviceList, setVideoDeviceList] = useState([])
+
+  useEffect(() => {
+    const getDevicesAsync = async () => {
+      if (caretOpen) {
+        //then we need to check for video devices
+        const devices = await getDevices();
+        console.log(devices.videoDevices)
+        setVideoDeviceList(devices.videoDevices)
+      }
+    }
+    getDevicesAsync()
+  }, [caretOpen])
+
+  //...
+
+  return (
+    <div className="button-wrapper video-button d-inline-block">
+      <i className="fa fa-caret-up choose-video" onClick={() => setCaretOpen(!caretOpen)}></i>
+      <div className="button camera" onClick={startStopVideo}>
+        <i className="fa fa-video"></i>
+        <div className="btn-text">{callStatus.video === "enabled" ? "Stop" : "Start"} Video</div>
+      </div>
+
+      {caretOpen ? <ActionButtonCaretDropDown
+        defaultValue={callStatus.videoDevice}
+        changeHandler={changeVideoDevice}
+        deviceList={videoDeviceList}
+        type="video"
+      /> : <></>}
+    </div>
+  )
+}
+```
+- TODO: find out the devices user has for video/audio `VideoButton/getDevices.js`
+- available for both audio and video (kind: `audioinput`, `audiooutput`, `videoinput`)
+
+```js
+//a utility funciton that fetches all available devices
+//both video and audio
+
+const getDevices = ()=>{
+    return new Promise(async(resolve, reject)=>{
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        // console.log(devices);
+        const videoDevices = devices.filter(d=>d.kind === "videoinput");
+        const audioOutputDevices = devices.filter(d=>d.kind === "audiooutput");
+        const audioInputDevices = devices.filter(d=>d.kind === "audioinput");
+        resolve({
+            videoDevices,
+            audioOutputDevices,
+            audioInputDevices
+        })
+    })
+}
+
+export default getDevices
+```
+
 ### 58. Set new video device on select - (7min)
 ### 59. replaceTracks() - (8min)
 ### 60. Abstract DropDown component - (3min)
