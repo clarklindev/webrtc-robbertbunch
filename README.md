@@ -3678,6 +3678,43 @@ const startLocalVideoStream = (streams, dispatch) => {
 export default startLocalVideoStream;
 ```
 ### 56. Enable and disable (mute) the local video feed - (6min)
+- TODO: update status of video Button after clicking it (eg. change visual state to eg. pause)
+- TODO: when you click on the video Button the feed should stop (instead of action of always adding tracks for peerConnection which already has those tracks)
+- if you were wondering like me where the `t.enabled` comes from... 
+  - getVideoTracks() which is MediaStreamTrack instance has an `enabled` property
+- with this we dont have to stop track, we can enable or disable it
+
+<img
+src='exercise_files/section05-webrtc+react-56-MediaStreamTrack-enabled.png'
+alt='section05-webrtc+react-56-MediaStreamTrack-enabled.png'
+width=600
+/>
+
+```js
+//VideoButton
+import updateCallStatus from "../../redux-elements/actions/updateCallStatus";
+
+
+if (callStatus.video === "enabled") {
+  //update redux callStatus
+  dispatch(updateCallStatus('video', "disabled"));
+  //set the stream to disabled
+  const tracks = streams.localStream.stream.getVideoTracks();
+  tracks.forEach(t => t.enabled = false);
+} else if (callStatus.video === "disabled") {
+  //second, check if the video is disabled, if so enable
+  //update redux callStatus
+  dispatch(updateCallStatus('video', "enabled"));
+  const tracks = streams.localStream.stream.getVideoTracks();
+  tracks.forEach(t => t.enabled = true);
+} else if (callStatus.haveMedia) {
+  //...
+}else{
+
+}
+
+```
+
 ### 57. Display local video inputs (camera options) - (11min)
 ### 58. Set new video device on select - (7min)
 ### 59. replaceTracks() - (8min)
