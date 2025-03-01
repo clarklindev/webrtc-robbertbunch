@@ -3817,29 +3817,61 @@ const changeVideoDevice = async (e)=>{
   const deviceId = e.target.value;  //device id
   
   //2. we need to getUserMedia (permission) again
+  //- appopriate syntax to tell browser what device to use
   const newConstraints = {
     audio: callStatus.audioDevice === 'default' ? true : {deviceId: {exact: callStatus.audioDevice}},
     video: {deviceId: {exact: deviceId}}
   }
-
-  //grab stream passing-in new constraints
+  //- grab stream passing-in these newConstraints
   const stream = await navigator.mediaDevices.getUserMedia(newConstraints);
 
-  //3. update Redux with that videoDevice, and that video is enabled
+  //3. update Redux via updateCallStatus() action with that videoDevice
   dispatch(updateCallStatus('videoDevice', deviceId));
   //4. update the smallFeedEl
+  //- override what user sees in top-right smallFeedEl window
   smallFeedEl.current.srcObject = stream;
-  //5. we need to update the localStream in streams
+  //5. we need to update the localStream stream
   dispatch(addStream('localstream', stream));
   
-  //6. add tracks
+  //6. add tracks - @1min10seconds
 }
  
+```
+### 59. replaceTracks() - (8min)
+- OUTCOME: ability to switch tracks (user can see feed chosen)
+- common use cases, switching between rear and front camera (on phone)
 
+6. add tracks - @1min10seconds
+- if we stop the old tracks, and add the new tracks, that will mean renotiation
+- and we dont want that because its costly (new offer, sdps, icecandidates etc)
+- NOTE: there is a `getSenders()` method that comes with `RTCPeerConnection` -> you run against your connection, which will grab the `senders`
+- the `senders` is that you run with `replaceTrack()` on.
+- instead we update tracks with `RTCRtpSender`'s `replaceTrack()` method
+  - the new track MUST be of the same kind (audio/video)
+  - switching a track should not require a renogotiation
+- at this time, the video has to be enabled because we just switched the feed `dispatch(updateCallStatus('video', 'enabled'));`
+
+<img
+src='exercise_files/section05-webrtc+react-59-replaceTrack.png'
+alt='section05-webrtc+react-59-replaceTrack.png'
+width=600
+/>
+
+```js
+//VideoButton
+//...
+
+const changeVideoDevice = async (e) => {
+  //...
+
+  const [videoTrack] = stream.getVideoTracks();
+  //come back to this later
+  //if we stop the old tracks, and add the new tracks, that will mean
+  // ... renegotiation
+}
 
 ```
 
-### 59. replaceTracks() - (8min)
 ### 60. Abstract DropDown component - (3min)
 ### 61. Set up AudioButton component - (11min)
 ### 62. Switch Audio Input and Output Devices - (11min)

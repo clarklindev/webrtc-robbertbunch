@@ -42,9 +42,9 @@ const VideoButton = ({ smallFeedEl }) => {
       video: { deviceId: { exact: deviceId } }
     }
     const stream = await navigator.mediaDevices.getUserMedia(newConstraints)
-    //3. update Redux with that videoDevice, and that video is enabled
+    //3. update Redux with that videoDevice (deviceId), AND that video is enabled
     dispatch(updateCallStatus('videoDevice', deviceId));
-    dispatch(updateCallStatus('video', 'enabled'))
+    dispatch(updateCallStatus('video', 'enabled'));
     //4. update the smallFeedEl
     smallFeedEl.current.srcObject = stream;
     //5. we need to update the localStream in streams
