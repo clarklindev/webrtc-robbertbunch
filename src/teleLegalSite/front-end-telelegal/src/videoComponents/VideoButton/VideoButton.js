@@ -15,10 +15,6 @@ const VideoButton = ({ smallFeedEl }) => {
   const [caretOpen, setCaretOpen] = useState(false);
   const [videoDeviceList, setVideoDeviceList] = useState([])
 
-  const DropDown = () => {
-    
-  }
-
   useEffect(() => {
     const getDevicesAsync = async () => {
       if (caretOpen) {
