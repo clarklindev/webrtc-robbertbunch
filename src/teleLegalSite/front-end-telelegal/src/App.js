@@ -9,7 +9,7 @@ const Home = ()=>{
   <>
     <h1>Home page</h1>
     <div>
-      Visit <a href="https://localhost:9000/user-link" target="_blank" rel="noopener noreferrer">User Link</a>
+      Visit <a href="https://localhost:9000/user-link" target="_self" rel="noopener noreferrer">User Link</a>
     </div>
   </>
   )

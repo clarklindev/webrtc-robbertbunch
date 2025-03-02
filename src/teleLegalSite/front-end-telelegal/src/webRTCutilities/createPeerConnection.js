@@ -16,7 +16,6 @@ const createPeerConnection = (addIce) => {
       console.log("Found ice candidate...");
       if (e.candidate) {
         //emit to socket server
-        // addIce(e.candidate);
       }
     });
     // peerConnection.addEventListener("track", (e) => {

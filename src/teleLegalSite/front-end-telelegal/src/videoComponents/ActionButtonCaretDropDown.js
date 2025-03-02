@@ -4,7 +4,8 @@ const ActionButtonCaretDropDown = ({ defaultValue, changeHandler, deviceList, ty
   let dropDownEl;
   if (type === "video") {
     dropDownEl = deviceList.map(vd => <option key={vd.deviceId} value={vd.deviceId}>{vd.label}</option>)
-  } else if (type === "audio") {
+  } 
+  else if (type === "audio") {
     const audioInputEl = [];
     const audioOutputEl = [];
     deviceList.forEach((d, i) => {

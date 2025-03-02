@@ -20,14 +20,14 @@ const MainVideoPage = ()=>{
   const [apptInfo, setApptInfo] = useState({});
   const smallFeedEl = useRef(null); //react ref to DOM element
   const largeFeedEl = useRef(null);
- 
 
+  
   useEffect(()=>{
     //fetch the user media
     const fetchMedia = async() =>{
       const constraints = {
         video: true,  //atleast one is required, just dont show it yet
-        audio: false
+        audio: true
       }
       try{
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -69,7 +69,7 @@ const MainVideoPage = ()=>{
   }, []);
 
   return (
-    <div clasName = "main-video-Page">
+    <div className="main-video-page">
       <div className="video-chat-wrapper">
         {/* div to hold remote video AND local video, AND chat window */}
         <video id="large-feed" ref={largeFeedEl} autoPlay controls playsInline></video>

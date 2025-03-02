@@ -7,6 +7,25 @@ app.get('/', (req, res)=> {
   res.json('this is the default route');
 });
 
+//this route is for US! In production, a receptionist, or calender/scheduling app
+//would send this out. We will print it out and paste it in. It will drop
+//us on our React site with the right info for CLIENT1 to make an offer
+app.get('/user-link',(req, res)=>{
+
+    //data for the end-user's appt
+    const apptData = {
+        professionalsFullName: "Robert Bunch, J.D.",
+        apptDate: Date.now() + 500000
+    }
+
+    //we need to encode this data in a token
+    //so it can be added to a url
+    const token = jwt.sign(apptData,linkSecret);
+    res.send('https://localhost:3000/join-video?token='+token);
+    // res.json("This is a test route")
+})  
+
+
 app.get('/test', (req, res)=>{
   res.json('this is a test route');
 });
