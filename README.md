@@ -4419,6 +4419,123 @@ const AudioButton = (smallFeedEl) =>{
 ---
 
 ### 63. Start, mute, unmute audio - (10min)
+- this lesson deals with the ability to mute/unmute audio
+- the join audio button joins the default audio by default 
+- AudioButton -> `startStopAudio()` toggle (if enabled, disable it and visa versa)
+- build the stream using newConstraints
+- dispatch to reducers
+- NOTE: to the localstream we do NOT need to add audio because we can hear ourself talking, its in the other end where we need to add localstream audio track..
+- startStopAudio() -> when we first call `changeAudioDevice()` we need to add the tracks because its the first time
+
+
+```js
+//AudioButton
+//...
+
+let micText;
+  if (callStatus.audio === "off") {
+    micText = "Join Audio"
+  } else if (callStatus.audio === "enabled") {
+    micText = "Mute"
+  } else {
+    micText = "Unmute"
+  }
+
+//...
+
+const startStopAudio = () => {
+  //first, check if the audio is enabled, if so disabled
+  if (callStatus.audio === "enabled") {
+    //update redux callStatus
+    dispatch(updateCallStatus('audio', "disabled"));
+    //set the stream to disabled
+    const tracks = streams.localStream.stream.getAudioTracks();
+    tracks.forEach(t => t.enabled = false);
+  } else if (callStatus.audio === "disabled") {
+    //second, check if the audio is disabled, if so enable
+    //update redux callStatus
+    dispatch(updateCallStatus('audio', "enabled"));
+    const tracks = streams.localStream.stream.getAudioTracks();
+    tracks.forEach(t => t.enabled = true);
+  } else {
+    //audio is "off" What do we do?
+    changeAudioDevice({ target: { value: "inputdefault" } })
+    //add the tracks - actually replace tracks
+    startAudioStream(streams);
+  }
+}
+
+const changeAudioDevice = async(e)=>{
+  const deviceId = e.target.value.slice(5); //'default'
+
+  //...
+  else if(audioType === 'input'){
+  //2. we need to getUserMedia (permission) 
+    const newConstraints = {
+      audio: { deviceId: { exact: deviceId } },
+      video: callStatus.videoDevice === "default" ? true : { deviceId: { exact: callStatus.videoDevice } },
+    }
+  }  
+
+  //...
+  //actually replace tracks
+  const tracks = stream.getAudioTracks();
+}
+```
+- NOTE: `startStopAudio()` we call `changeAudioDevice()` and pass it an object with target.value... 
+- this is to mimic props expected for `changeAudioDevice()`
+
+### Constraints
+- when we run our app locally our constraints have audio as `false` (testing locally), this is to stop the feedback effect.
+- in production, MainVideoPage.js -> constraints (audio AND video) should both be true otherwise you will be asked separately firstly getUserMedia() for video, then again for audio, which is not a good experience.
+ 
+
+### refactor startLocalVideoStream.js -> AudioButton/StartAudioStream.js
+- AudioButton/StartAudioStream.js
+- send in as props `dispatch` and `streams`
+- grab localStream `const localStream = streams.localStream;`
+- loop through all the streams, as long as its not the localStream
+  - add our conveniece variable `curStream` for the current stream in streams
+  - get the streams audioTracks, loop through them 
+- call curStream.peerConnection.addTrack() and pass it `track` and `streams.localStream.stream`
+- ie. set the current streams peerConnection to this localStream.stream
+
+```js
+//AudioButton/StartAudioStream.js
+//this functions job is to update all peerConnections (addTracks) and update redux callStatus
+import updateCallStatus from "../../redux-elements/actions/updateCallStatus";
+
+const startAudioStream = (streams)=>{
+  const localStream = streams.localStream;
+  for(const s in streams){ //s is the key
+    if(s !== "localStream"){
+      //we don't addTracks to the localStream
+      const curStream = streams[s];
+      //addTracks to all peerConnecions
+      localStream.stream.getAudioTracks().forEach(t=>{
+          curStream.peerConnection.addTrack(t,streams.localStream.stream);
+      })
+    }   
+  }
+}
+export default startAudioStream;
+
+```
+- then in AudioButton call this `startAudioStream(streams)`
+
+---
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
+## Signaling Server
+
 ### 64. Organize offers on backEnd and add uuid - (8min)
 ### 65. createOffer() once the tracks are shared - (13min)
 ### 66. Add Dashboard markup for professional - (5min)

@@ -27,7 +27,7 @@ const MainVideoPage = ()=>{
     const fetchMedia = async() =>{
       const constraints = {
         video: true,  //atleast one is required, just dont show it yet
-        audio: true
+        audio: true   
       }
       try{
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
