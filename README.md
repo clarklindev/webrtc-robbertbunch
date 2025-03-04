@@ -2233,7 +2233,7 @@ const socket = io.connect('https://192.168.1.104:8181/, {
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-
+# Client 1 portion of code
 
 ## Section 05 - webRTC and React - TeleLegal site
 ### 40. Project Demo - (6min)
@@ -4067,9 +4067,12 @@ export default ActionButtonCaretDropDown
 - for changeHandler's `changeAudioDevice()` 
 - NOTE: @6min37sec when using `<ActionButtonCaretDropDown type="video">` OR `<ActionButtonCaretDropDown type="audio">` we are now passing through type
 - add prop `type` to arguments for `ActionButtonCaretDropDown`
+- and if the type is audio, we need to differentiate the values between `audio input` and `audio output`
 - we add the respective audio kind to its array and also use `unshift()` to add label header for select dropdown
+- NOTE: `unshift()` puts it at top of list
 - set `dropDownEl = audioInputEl.concat(audioOutputEl)` which then shows both when carot selected.
-  
+- LIMITATIONS -> doing it this way we can only select ONE option (either input or output) unless we use a 3rd party library
+
 ```js
 //ActionButtonCaretDropDown
 
@@ -4331,7 +4334,89 @@ const constraints = {
 
 ### 62. Switch Audio Input and Output Devices - (11min)
 - lesson deals with `changeAudioDevice()` function (use changeVideoDevice as template instead of `video` its `audio`)
-- 
+- the user changed the desired `output audio device` or `input audio device` 
+- NOTE: limitation is you can only choose one at a time with option (input or output)
+1. we need to get that deviceAudioId
+
+2. we need to getUserMedia (permission) 4min.26sec
+- from ActionButtons: 
+  - the AudioButton needs the smallFeedEl passed into AudioButton `<AudioButton smallFeedEl={smallFeedEl}/>` 
+- HTMLMediaElement.`setSinkId()` sets the id of the audio device to use for output (eg. switch audio)
+  <img
+  src='exercise_files/section05-webrtc+react-62-setSinkId.png'
+  alt='section05-webrtc+react-62-setSinkId.png'
+  width=600
+  />
+
+3. update Redux with that videoDevice, and that video is enabled
+
+```js
+//AudioButtons
+const AudioButton = (smallFeedEl) =>{
+  //...
+
+  const changeAudioDevice = async (e) => {
+    //the user changed the desired ouput audio device OR input audio device
+    //1. we need to get that deviceId AND the type
+    const deviceId = e.target.value.slice(5);     //gets device id
+    const audioType = e.target.value.slice(0,5);  //`input` or `output`
+
+    //2. we need to getUserMedia (permission) 4min.26sec
+    if(audioType === "output"){
+      //4. (NOTE: 4 is out of order) update the smallFeedEl
+      //we are now DONE! we dont care about the output for any other reason
+      smallFeedEl.current.setSinkId(deviceId);
+    }else if(audioType === 'input'){
+      //we need to getUserMedia (permission) 6min.39sec
+      const newConstraints = {
+        audio: { deviceId: { exact: deviceId } },
+        video: callStatus.videoDevice === "default" ? true : { deviceId: { exact: callStatus.videoDevice } },
+      }
+      const stream = await navigator.mediaDevices.getUserMedia(newConstraints);
+      //3. update Redux with that audioDevice, and that audio is enabled
+      dispatch(updateCallStatus('audioDevice', deviceId));
+      dispatch(updateCallStatus('audio', 'enabled'))
+
+      //5. we need to update the localStream in streams
+      dispatch(addStream('localStream', stream))
+    }
+  }
+}
+```
+
+### caret dropdown
+- videoComponents/ActionButtonCaretDropDown ability to distinguish between audio input and audio output devices (key's and value) because they have the same device id.
+- solution: by adding a string prefix to the devicelist:
+  - key={`input${d.deviceId}`} AND 
+  - device id: value={`input${d.deviceId}`}
+
+```js
+//videoComponents/ActionButtonCaretDropDown
+
+  //...
+
+  else if (type === "audio") {
+    const audioInputEl = [];
+    const audioOutputEl = [];
+    deviceList.forEach((d, i) => {
+      if (d.kind === "audioinput") {
+        audioInputEl.push(<option key={`input${d.deviceId}`} value={`input${d.deviceId}`}>{d.label}</option>)
+      } else if (d.kind === "audiooutput") {
+        audioOutputEl.push(<option key={`ouput${d.deviceId}`} value={`ouput${d.deviceId}`}>{d.label}</option>)
+      }
+    })
+
+    //add to begging of array
+    audioInputEl.unshift(<optgroup label="Input Devices" />)
+    audioOutputEl.unshift(<optgroup label="Output Devices" />)
+    dropDownEl = audioInputEl.concat(audioOutputEl)
+  }
+}
+```
+
+
+# end of client 1 portion (excluding the signaling part)
+---
 
 ### 63. Start, mute, unmute audio - (10min)
 ### 64. Organize offers on backEnd and add uuid - (8min)

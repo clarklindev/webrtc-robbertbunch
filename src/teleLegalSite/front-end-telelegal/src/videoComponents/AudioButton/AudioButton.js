@@ -63,6 +63,7 @@ const AudioButton = ({ smallFeedEl }) => {
     const deviceId = e.target.value.slice(5);
     const audioType = e.target.value.slice(0, 5);
     console.log(e.target.value)
+    //2. we need to getUserMedia (permission)
 
     if (audioType === "output") {
       //4 (sort of out of order). update the smallFeedEl
