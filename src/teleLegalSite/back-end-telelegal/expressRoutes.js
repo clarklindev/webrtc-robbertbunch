@@ -3,6 +3,11 @@ const app = require("./server").app;
 const jwt = require('jsonwebtoken');
 const linkSecret = 'dfvcv4asodihs97s9fsd';
 
+const {v4: uuidv4} = require('uuid');
+
+const professionalAppointments = [];
+app.set('professionalAppointments', professionalAppointments);    //accessible via app..
+
 app.get('/', (req, res)=> {
   res.json('this is the default route');
 });
@@ -11,12 +16,16 @@ app.get('/', (req, res)=> {
 //would send this out. We will print it out and paste it in. It will drop
 //us on our React site with the right info for CLIENT1 to make an offer
 app.get('/user-link',(req, res)=>{
+    const uuid = uuidv4(); // basically a self managed primary key 
 
     //data for the end-user's appt
     const apptData = {
         professionalsFullName: "Robert Bunch, J.D.",
-        apptDate: Date.now() + 500000
+        apptDate: Date.now() + 500000,
+        uuid
     }
+
+    professionalAppointments.push(apptData);
 
     //we need to encode this data in a token
     //so it can be added to a url
@@ -55,5 +64,7 @@ app.post('/validate-link', (req, res)=>{
 
   //send the decoded data (our object) back to the frontend
   res.json(decodedData);
+
+  console.log(professionalAppointments);
 
 });

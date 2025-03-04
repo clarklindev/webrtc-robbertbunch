@@ -7,6 +7,9 @@
 04. How I code - 4min
 05. But it's 2023: Why would I use webRTC over an SDK (Zoom)? - 6min
 
+---
+
+# getUserMedia
 ## Section 02 - getUserMedia playground (basics)
 06. Project file setup - 3min
 07. getUserMedia - where everything starts - 13min
@@ -20,6 +23,9 @@
 15. Getting available input/outputs with enumerateDevices() - 9min
 16. Loading up input/output options - 11min
 
+---
+
+# rtcPeerConnection
 ## Section 03 - rtcPeerConnection - Stream Video, peer to peer
 17. Section Demo & Overview - 6min
 18. rtcPeerConnection and signaling - 7min
@@ -47,7 +53,12 @@
 38. The Process (on the board) - 24min (watch at 2x)
 39. Code Review - 50min (watch at 2x)
 
+---
+
+# telelegal project
 ## Section 05 - WebRTC and  - eact
+--- client 1
+
 40. Project Demo - 6min
 41. Project Structure and Front-end Setup - 6min
 42. Chrome and localhost certs - 1min
@@ -72,6 +83,9 @@
 61. Set up AudioButton component - 11min
 62. Switch Audio Input and Output Devices - 11min
 63. Start, mute, unmute audio - 10min
+
+---signal server
+
 64. Organize offers on backEnd and add uuid - 8min
 65. createOffer() once the tracks are shared - 13min
 66. Add Dashboard markup for professional - 5min
@@ -94,6 +108,8 @@
 83. Fix 2 small bugs - 2min
 84. Make the HangupButton do something! - 5min
 85. ReplaceTracks on change device - 8min
+
+--- AWS
 
 ## Section 06 - Deploying our app to AWS
 86. Drawing Out And Explaining The Process -15min
@@ -4537,6 +4553,134 @@ export default startAudioStream;
 ## Signaling Server
 
 ### 64. Organize offers on backEnd and add uuid - (8min)
+- back to `backend` socket server (telelLegalSite/back-end-telelegal)
+
+### Chatserver
+<img
+src='exercise_files/section05-webrtc+react-64-server.js-chatserver-offer.png'
+alt='section05-webrtc+react-64-server.js-chatserver-offer.png'
+width=600
+/>
+
+- previously...offers in a chat server shared this data
+const offer = {
+  `offererUsername`,
+  `offer`,
+  `offerIceCandidates`,
+  `answererUsername`,
+  `answer`,
+  `answererIceCandidates`
+}
+
+### Telelegal chat
+
+<img
+src='exercise_files/section05-webrtc+react-64-server.js-telelegalsite-offer.png'
+alt='section05-webrtc+react-64-server.js-telelegalsite-offer.png'
+width=600
+/>
+
+- with a telelegal site, the offer is coming from person A and needs to get to a specific person B...
+
+```js
+const allKnownOffers = {
+  `uniqueId` - key (uuid),
+  `offer`,
+  `professionalsFullname`,
+  `clientName`,
+  `apptDate` (appointment date),
+  `offererIceCandidates`,
+  `answer`,
+  `answererIceCandidates`
+}
+```
+- to use [UUID](https://www.npmjs.com/package/uuid) (universally unique identifier (128bits long)) 
+- UUID guarantees uniquess accross space and time
+
+- on the `back-end-telelegal/`
+```
+pnpm i uuid 
+```
+
+### ES6 modules syntax
+```js
+import { v4 as uuidv4 } from 'uuid';
+uuidv4(); // '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+```
+
+### on server how to manage a no-database store...via app.get() and app.set()
+
+### commonjs syntax
+- paste in `expressRoutes.js`
+```js
+//back-end-telelegal/expressRoutes.js
+
+const {v4: uuidv4} = require('uuid');
+//...
+const professionalAppointments = [];
+app.set('professionalAppointments', professionalAppointments);
+
+app.get('/user-link', (req, res)=>{
+  const uuid = uuidv4(); // '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+
+  const appData = {
+    professionalsFullName: 'Robert Bunch',
+    apptDate: Date.now() + 50000,
+    uuid
+  }
+
+  professionalAppointments.push(apptData);
+});
+
+app.post('/validate-link', (req, res)=>{
+  //...
+  console.log(professionalAppointments);
+});
+```
+
+- @4min.58sec
+- appData will go to both users 
+  - to user -> receives a link (email)
+  - to professional (eg. the doctor) -> receives it in the dashboard
+
+- NOTE: we dont have a database so improvise with app.set() and app.get()
+- we create a new variable for the professionals' appointments: `const professionalAppointments = [];`
+- make it accessible via `app` by attaching it via set: `app.set('professionalAppointments', professionalAppointments);`
+- note we define app in `./server.js` - `const app = require("./server").app;`
+- example of accessing this via app in socketServer.js `const professionalAppointments = app.get('professionalAppointments');`
+- NOTE: this is how we would use `app.get()` and `app.set()` 
+- but here... it will be stale data as it is loaded as soon as server loads up.
+
+
+```js
+//socketServer.js
+//example of accessing this via app
+const app = require("./server").app;      //note: we define app in ./server.js
+
+//const professionalAppointments = app.get('professionalAppointments'); //just an example, as it would be stale data. dont use it this way..
+
+//...
+io.on('connection', socket => {
+  console.log(socket.id, "has connection");
+  socket.on('newOffer', ({offer, apptInfo})=>{
+    //offer = sdp/type, apptInfo has the uuid that we can add to allKnownOffers so that the professional can find EXACTLY the right allKnownOffers
+
+  });
+});
+```
+
+### outcome
+- console log
+- the professionals name will be the key
+- the uuid will be the thing that guarantees a connection between our 2 users.
+
+<img
+src='exercise_files/section05-webrtc+react-64-expressRoutes.js-console.log(professionalAppointments).png'
+alt='section05-webrtc+react-64-expressRoutes.js-console.log(professionalAppointments).png'
+width=600
+/>
+
+
 ### 65. createOffer() once the tracks are shared - (13min)
 ### 66. Add Dashboard markup for professional - (5min)
 ### 67. Optional - Overview of markup - (2min)
@@ -4573,7 +4717,7 @@ export default startAudioStream;
 ### 86. Drawing Out And Explaining The Process - (15min)
 ### 87. Warning... this section is deploying, not WebRTC and might be hard - (1min)
 ### 88. Setting up a (hopefully) free AWS server to run our app on - (36min)
-### 89. Getting a Domain &Setting It To Point At Our Server & Install Apache - (17min)
+### 89. Getting a Domain & Setting it to point at our server & Install Apache - (17min)
 ### 90. Pulling files onto our server from github and building React - (20min)
 ### 91. htaccess file and vhost for next lecture - (1min)
 ### 92. Vhost - Telling Apache Where Our Sites Are - (12min)
