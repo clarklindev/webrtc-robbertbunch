@@ -2,6 +2,7 @@ import {BrowserRouter, Routes, Route  } from 'react-router-dom';
 import socketConnection from './webRTCutilities/socketConnection';
 import MainVideoPage from './videoComponents/MainVideoPage';
 import ExternalRedirect from './utilities/ExternalRedirect';
+import ProDashboard from './siteComponents/ProDashboard';
 import './App.css';
 
 const Home = ()=>{
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         <Route exact path="/" Component={Home}/>
         <Route path="/join-video" Component={MainVideoPage}/>
+        <Route path="/dashboard" Component={ProDashboard}/>
       </Routes>
     </BrowserRouter>
     

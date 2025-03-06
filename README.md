@@ -5214,9 +5214,52 @@ const apptData = {
 }
 ```
 
-### 66. Add Dashboard markup for professional - (5min)
+### 66. Add Dashboard markup for professional - (5min)  
+
+<img
+src='exercise_files/section05-webrtc+react-66-dashboard.png'
+alt='section05-webrtc+react-66-dashboard. png'
+width=600
+/>
+
+- on the professional side
+- we are focusing on coming appointments (join video)
+
+### TODOS
+1. Import markup for dashboard
+2. Create path to dashboard
+3. create JWT for attorney auth and validate handshake
+4. reorganize appt data
+5. pull back and diplay appointment data on connect
+6. add listener for user ready when connected
+7. on click join button, go to /join-video (request userMedia)
+8. prompt for vidoe and audio before connecting
+9. create answer, gather iceCandidates and connect! 
+
+@2min42sec
+- create frontend `/src/siteComponents/ProDashboard.js` and `ProDashboard.css`
+- use the course starterFiles and paste starting code
+- TODO: add route for dashboard in -> App.js
+
+```js
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route exact path="/" Component={Home}/>
+        <Route path="/join-video" Component={MainVideoPage}/>
+        <Route path="/dashboard" Component={ProDashboard}/>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+- TODO: create a link to dashboard: `https://localhost:3000/dashboard`
+
 
 ### 67. Optional - Overview of markup - (2min)
+- creating a jwt for professional when he/she/it joins.
 
 ### 68. Authenticate professional - (10min)
 
