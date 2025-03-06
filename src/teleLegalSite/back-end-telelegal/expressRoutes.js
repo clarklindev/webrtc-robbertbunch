@@ -20,9 +20,10 @@ app.get('/user-link',(req, res)=>{
 
     //data for the end-user's appt
     const apptData = {
-        professionalsFullName: "Robert Bunch, J.D.",
-        apptDate: Date.now() + 500000,
-        uuid
+      professionalsFullName: "Robert Bunch, J.D.",
+      apptDate: Date.now() + 500000,
+      uuid,
+      clientName: "Jim Jones",
     }
 
     professionalAppointments.push(apptData);
