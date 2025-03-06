@@ -5259,9 +5259,10 @@ function App() {
 
 
 ### 67. Optional - Overview of markup - (2min)
-- creating a jwt for professional when he/she/it joins.
+- walthrough of html markup
 
 ### 68. Authenticate professional - (10min)
+- creating a jwt for professional when he/she/it joins.
 
 ### 69. socket refactoring - (9min)
 
