@@ -5454,6 +5454,50 @@ try{
 
 // import socket from '../webRTCutilities/socketConnection';
 import socketConnection from '../webRTCutilities/socketConnection';
+
+//...
+//get the token from the url for the socket connection
+const token = searchParams.get('token');
+//get the socket form the socketConnection
+const socket = socketConnection(token);
+socket.emit('newOffer', {offer, apptInfo} );
+```
+
+- BACKEND
+```js
+//backend socketServer.js
+const handShakeData = socket.handshake.auth.jwt;
+let decodedData;
+try{
+  decodedData = jwt.verify(handShakeData, linkSecret); //decode jwt with secret
+}catch(err){
+  console.log(err);
+  socket.disconnect();
+  return;
+}
+
+//...
+const {fullName, proId} = decodedData;
+if(proId){
+  //check to see if user is already in connectedProfessionals
+  //this would happen because they have reconnected
+  const connectedPro = connectedProfessionals.find(cp=> cp.proId === proId);
+
+  if(connectedPro){
+    //just update the new socket.id
+    connectedPro.socketId = socket.id;
+
+  }else{
+    //otherwise, push on connectedProfessionals
+    connectedProfessionals.push({
+      socketId: socket.id,
+      fullName,
+      proId
+    });
+  }
+}else{
+  //this is a client
+}
 ```
 
 ### 70. Reorganize Appointment Data - (3min)
