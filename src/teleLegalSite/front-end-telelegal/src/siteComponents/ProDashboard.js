@@ -1,14 +1,12 @@
+import axios from "axios";
 import { useSearchParams } from "react-router-dom";
 import {useEffect, useState} from 'react';
-import socket from '../webRTCutilities/socketConnection';
-import axios from "axios";
-import "./ProDashboard.css";
 import socketConnection from "../webRTCutilities/socketConnection";
+import "./ProDashboard.css";
 
 const ProDashboard = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
-
   const [apptInfo, setApptInfo] = useState([]);
 
   useEffect(() => {
@@ -26,7 +24,7 @@ const ProDashboard = () => {
       console.log(resp.data);
       setApptInfo(resp.data);
     };
-    fetchDecodedToken();
+    fetchDecodedToken(); 
   }, []);
 
   return (

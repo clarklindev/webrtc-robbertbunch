@@ -26,8 +26,7 @@ const allKnownOffers = {
 io.on("connection", (socket) => {
   console.log(socket.id, "has connected");
 
-  const handShakeData = socket.handshake.auth.fullName;
-
+  const handShakeData = socket.handshake.auth.jwt;
   let decodedData;
   try{
     decodedData = jwt.verify(handShakeData, linkSecret); //decode jwt with secret

@@ -66,8 +66,6 @@ app.post('/validate-link', (req, res)=>{
   //send the decoded data (our object) back to the frontend
   res.json(decodedData);
 
-  console.log(professionalAppointments);
-
 });
 
 

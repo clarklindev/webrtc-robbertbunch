@@ -20,7 +20,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route exact path="/" Component={Home}/>
+        <Route path="/" Component={Home}/>
         <Route path="/join-video" Component={MainVideoPage}/>
         <Route path="/dashboard" Component={ProDashboard}/>
       </Routes>

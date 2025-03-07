@@ -5239,6 +5239,8 @@ width=600
 @2min42sec
 - create frontend `/src/siteComponents/ProDashboard.js` and `ProDashboard.css`
 - use the course starterFiles and paste starting code
+
+### Create route on frontend
 - TODO: add route for dashboard in -> App.js
 
 ```js
@@ -5248,7 +5250,7 @@ function App() {
       <Routes>
         <Route exact path="/" Component={Home}/>
         <Route path="/join-video" Component={MainVideoPage}/>
-        <Route path="/dashboard" Component={ProDashboard}/>
+        <Route exact path="/dashboard" Component={ProDashboard}/>
       </Routes>
     </BrowserRouter>
   );
@@ -5274,6 +5276,10 @@ function App() {
 - so `https://localhost:3000/dashboard?token=${token}` should show appointment details
 - TODO: then.. create socket connection 
 - TODO: then validate the handshake on backend
+
+### professional link with JWT
+- https://localhost:9000/pro-link
+- this creates the link with the jwt for the professional in dashboard
 
 ```js
 //expressRoutes
@@ -5363,9 +5369,11 @@ io.on("connection", (socket) => {
 ```
 
 ### 69. socket refactoring - (9min)
-- frontend -> need to make socket connection (since up to here we only import it and we have since updated it to include jwt prop)
+- backend
+- frontend - localhost:9000/dashboard
+- need to make socket connection (since up to here we only import it and we have since updated it to include jwt prop)
 - socketConnection's socket() becomes a function `socketConnection()` which needs jwt
-- Prodashboard.js -> make the socket connection -> `socketConnection(token);`
+- ProDashboard.js -> make the socket connection -> `socketConnection(token);`
 - this starts the socket connection, and we update it to return socket;
 - TODO: 
     - check to see if user is already in connectedProfessionals

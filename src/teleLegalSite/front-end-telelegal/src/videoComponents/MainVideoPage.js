@@ -43,14 +43,6 @@ const MainVideoPage = ()=>{
         // - EXCEPT, its not time yet because
         //   - we dont have `SDP` -> information about the feed and we dont have tracks.
         // - then call `socket.emit`... 
-
-        //get the token from the url for the socket connection
-        const token = searchParams.get('token');  //get token out querystring
-
-        //get the socket from socketConnection
-        const socket = socketConnection(token);
-        socket.emit('newOffer', {offer, apptInfo});
-
       }catch(err){
         console.log(err);
       }
@@ -58,18 +50,7 @@ const MainVideoPage = ()=>{
     fetchMedia();
   }, []);
 
-  useEffect(()=>{
-    //grab the token out fof the query string
-    const token = searchParams.get('token');  //get token out querystring
-    console.log(token);
-    const fetchDecodedToken = async () =>{
-      const resp = await axios.post('https://localhost:9000/validate-link', {token});
-      console.log(resp.data);
-      setApptInfo(resp.data);
-    }
-    fetchDecodedToken();
-  }, []);
-
+  
   useEffect(()=>{
     const createOfferAsync = async ()=>{
       //we have audio and video, now we make an offer
@@ -79,8 +60,12 @@ const MainVideoPage = ()=>{
           try{
             //pc === peerConnection
             const pc = streams[s].peerConnection;
-            const offer = await pc.createOffer()
-            socket.emit('newOffer', {offer, apptInfo} )
+            const offer = await pc.createOffer();
+            //get the token from the url for the socket connection
+            const token = searchParams.get('token');
+            //get the socket from socketConnection
+            const socket = socketConnection(token);
+            socket.emit('newOffer', {offer, apptInfo} );
           }catch(err){
             console.log(err);
           }
@@ -93,6 +78,19 @@ const MainVideoPage = ()=>{
       createOfferAsync();
     }
   }, [callStatus.audio, callStatus.video, callStatus.haveCreatedOffer]);
+
+
+  useEffect(()=>{
+    //grab the token out fof the query string
+    const token = searchParams.get('token');  //get token out querystring
+    console.log(token);
+    const fetchDecodedToken = async () =>{
+      const resp = await axios.post('https://localhost:9000/validate-link', {token});
+      console.log(resp.data);
+      setApptInfo(resp.data);
+    }
+    fetchDecodedToken();
+  }, []);
 
   return (
     <div className="main-video-page">
