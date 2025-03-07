@@ -27,15 +27,42 @@ io.on("connection", (socket) => {
   console.log(socket.id, "has connected");
 
   const handShakeData = socket.handshake.auth.fullName;
-  const decodedData = jwt.verify(handShakeData, linkSecret); //decode jwt with secret
+
+  let decodedData;
+  try{
+    decodedData = jwt.verify(handShakeData, linkSecret); //decode jwt with secret
+  }catch(err){
+    console.log(err);
+    socket.disconnect();
+    return;
+  }
+
+  
   const {fullName, proId} = decodedData;
 
-  connectedProfessionals.push({
-    socketId: socket.id,
-    fullName,
-    proId
-  });
+  if(proId){
+    //check to see if user is already in connectedProfessionals
+    //this would happen because they have reconnected
+    const connectedPro = connectedProfessionals.find(cp=> cp.proId === proId);
 
+    if(connectedPro){
+      //just update the new socket.id
+      connectedPro.socketId = socket.id;
+
+    }else{
+      //otherwise, push on connectedProfessionals
+      connectedProfessionals.push({
+        socketId: socket.id,
+        fullName,
+        proId
+      });
+    }
+  }else{
+
+    //this is a client
+  }
+  
+ 
   console.log(connectedProfessionals);
 
   socket.on('newOffer', ({offer, apptInfo})=>{

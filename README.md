@@ -5327,7 +5327,6 @@ useEffect(()=>{
 - const {fullName, proId} = decodedData;
 - then we can push this onto connectedProfessionals
 
-- frontend -> need to make socket connection (since up to here we only import it and we have since updated it to include jwt prop)
 
 ```js
 //src/webRTCutilities/socketConnection.js
@@ -5364,6 +5363,90 @@ io.on("connection", (socket) => {
 ```
 
 ### 69. socket refactoring - (9min)
+- frontend -> need to make socket connection (since up to here we only import it and we have since updated it to include jwt prop)
+- socketConnection's socket() becomes a function `socketConnection()` which needs jwt
+- Prodashboard.js -> make the socket connection -> `socketConnection(token);`
+- this starts the socket connection, and we update it to return socket;
+- TODO: 
+    - check to see if user is already in connectedProfessionals
+    - push onto connectedProfessionals ONLY if it cant find proId
+    - this would happen because they have reconnected
+- NOTE: currently on connect and reconnect a new socket id (but it only shows up once)...
+- PROBLEM: it returns socket, and if we call the function each time we will connect each time
+- FIX: singleton pattern (see socketConnection.js)
+
+
+
+```js
+//socketServer.js
+
+//...
+const connectedPro = connectedProfessionals.find(cp=> cp.proId === proId);
+
+if(connectedPro){
+  //just update the new socket.id
+
+}else{
+  //otherwise, push on connectedProfessionals
+  connectedProfessionals.push({
+    socketId: socket.id,
+    fullName,
+    proId
+  });
+
+}
+```
+
+```js
+// socketConnection.js
+import { io } from "socket.io-client";
+
+const socketConnection = (jwt) => {
+  let socket;
+
+  //check to see if socket is already connected, 
+  if (socket && socket.connected) {
+    //if so, just return it...
+    return socket;
+  }
+
+  //otherwise its not connected, connect!
+  socket = io.connect("https://localhost:9000", {
+    auth: {
+      jwt,
+    },
+  });
+  return socket;
+};
+export default socketConnection;
+
+```
+- @4min45sec
+- back in MainVideoPage.js 
+- rename `import socket ...` to `import socketConnection ...`
+- get the token from the url
+- create socket (which will have emit)
+- get the socket from socketConnection
+- with socketServer.js wrap the jwt.verify in try/catch to weed out users who dont belong (socket.disconnect())
+
+```js
+//socketServer.js
+let decodedData;
+try{
+  decodedData = jwt.verify(handShakeData, linkSecret); //decode jwt with secret
+}catch(err){
+  console.log(err);
+  socket.disconnect();
+  return;
+}
+```
+
+```js
+//MainVideoPage.js
+
+// import socket from '../webRTCutilities/socketConnection';
+import socketConnection from '../webRTCutilities/socketConnection';
+```
 
 ### 70. Reorganize Appointment Data - (3min)
 
