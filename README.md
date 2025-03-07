@@ -5262,7 +5262,106 @@ function App() {
 - walthrough of html markup
 
 ### 68. Authenticate professional - (10min)
-- creating a jwt for professional when he/she/it joins.
+- REMINDER: on client side for user, a link is sent with a token which includes the data regarding who the person is
+- creating a jwt for professional when he/she/it joins BUT...for the dashboard
+- instead of directing to `/get-link` it goes to `/dashboard`
+- need to know professional is logged-in (clicking on link (you see jwt in url))
+
+### what to do with dashboard jwt?
+- @3min04sec
+- because we use the same secret we can validate the token via `/validate-link` (production should use different secrets) and then get the data from the jwt....
+- but what we really want is 5. pull back and display appointment data on connect
+- so `https://localhost:3000/dashboard?token=${token}` should show appointment details
+- TODO: then.. create socket connection 
+- TODO: then validate the handshake on backend
+
+```js
+//expressRoutes
+app.get('/pro-link', (req, res)=> {
+  const userData = {
+    fullName: 'Peter CHan, J.D',
+    proId:1234,
+
+  }
+  const token = jwt.sign(userData,linkSecret);
+  res.send(`<a href="https://localhost:3000/dashboard?token=${token}" target="_blank">link here</a>`);
+}); 
+
+```
+
+- in MainVideoPage.js
+- copy the useEffect that fetches the decoded token `fetchDecodedToken()`... because we want to use this for the dashboard
+- put it in ProDashboard.js
+- console.log(resp.data) outputs the clients' `userData`
+<img
+src='exercise_files/section05-webrtc+react-68-authenticated-professional-dashboard-decodedToken.png'
+alt='section05-webrtc+react-68-authenticated-professional-dashboard-decodedToken.png'
+width=600
+/>
+
+
+```js
+//ProDashboard.js
+import socket from '../webRTCutilities/socketConnection';
+
+useEffect(()=>{
+  //grab the token out of the query string
+  const token = searchParams.get('token');  //get token out querystring
+  console.log(token);
+  const fetchDecodedToken = async () =>{
+    const resp = await axios.post('https://localhost:9000/validate-link', {token});
+    console.log(resp.data);
+    setApptInfo(resp.data);
+  }
+  fetchDecodedToken();
+}, []);
+
+```
+- NOTE: we import socket which automatically connects, but we actually need to send data up on connection
+- `src/webRTCutilities/socketConnection.js`
+- we send up to backend the jwt
+- socketServer.js (*backend) instead of grabbing fullName `const fullName = socket.handshake.auth.fullName;`
+- grab the jwt:  `const jwt = socket.handshake.auth.jwt;`
+- grab decodedData from expressRoutes.js (/validate-link) `const decodedData = jwt.verify(token, linkSecret); //decode jwt with secret`
+- grab from expressRoutes: linkSecret into socketServer.js (note: use env variable here...)
+- const {fullName, proId} = decodedData;
+- then we can push this onto connectedProfessionals
+
+- frontend -> need to make socket connection (since up to here we only import it and we have since updated it to include jwt prop)
+
+```js
+//src/webRTCutilities/socketConnection.js
+import {io} from 'socket.io-client';
+
+const socketConnection = (jwt)=>{
+  const socket = io.connect('https://localhost:9000', {
+    auth: {
+      jwt
+    }
+  });
+}
+export default socketConnection;
+```
+
+```js
+//backend /socketServer.js
+io.on("connection", (socket) => {
+  console.log(socket.id, "has connected");
+
+  const jwt = socket.handshake.auth.jwt;
+  const decodedData = jwt.verify(token, linkSecret); //decode jwt with secret
+
+   connectedProfessionals.push({
+    socketId: socket.id,
+    fullName,
+    proId
+  });
+
+
+  //...
+});
+
+```
 
 ### 69. socket refactoring - (9min)
 

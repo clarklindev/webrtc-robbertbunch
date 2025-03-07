@@ -69,3 +69,14 @@ app.post('/validate-link', (req, res)=>{
   console.log(professionalAppointments);
 
 });
+
+
+app.get('/pro-link', (req, res)=> {
+  const userData = {
+    fullName: 'Peter CHan, J.D',
+    proId:1234,
+
+  }
+  const token = jwt.sign(userData,linkSecret);
+  res.send(`<a href="https://localhost:3000/dashboard?token=${token}" target="_blank">link here</a>`);
+}); 

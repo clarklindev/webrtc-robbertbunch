@@ -1,6 +1,9 @@
 //all our socketServer stuff happens here
 const io = require("./server").io;
 const app = require('./server').app;
+const jwt = require('jsonwebtoken');
+
+const linkSecret = 'dfvcv4asodihs97s9fsd';
 
 // const professionalAppointments = app.get('professionalAppointments')
 const connectedProfessionals = [];
@@ -23,12 +26,17 @@ const allKnownOffers = {
 io.on("connection", (socket) => {
   console.log(socket.id, "has connected");
 
-  const fullName = socket.handshake.auth.fullName;
+  const jwt = socket.handshake.auth.fullName;
+  const decodedData = jwt.verify(token, linkSecret); //decode jwt with secret
+  const {fullName, proId} = decodedData;
 
   connectedProfessionals.push({
     socketId: socket.id,
-    fullName
+    fullName,
+    proId
   });
+
+  console.log(connectedProfessionals);
 
   socket.on('newOffer', ({offer, apptInfo})=>{
     //offer = sdp/type, apptInfo has the uuid that we can add to allKnownOffers so that the professional can find EXACTLY the right allKnownOffers
