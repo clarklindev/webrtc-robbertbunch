@@ -40,6 +40,7 @@ io.on("connection", (socket) => {
   const {fullName, proId} = decodedData;
 
   if(proId){
+    //means its a professional
     //check to see if user is already in connectedProfessionals
     //this would happen because they have reconnected
     const connectedPro = connectedProfessionals.find(cp=> cp.proId === proId);
@@ -56,6 +57,12 @@ io.on("connection", (socket) => {
         proId
       });
     }
+  
+    //send the appt data out to the professional
+    const professionalAppointments = app.get('professionalAppointments');
+    console.log('all professionalAppointments: ', professionalAppointments);
+    const appointments = professionalAppointments.filter(pa=> pa.professionalsFullName === fullName);
+    socket.emit('apptData', appointments);
   }else{
 
     //this is a client

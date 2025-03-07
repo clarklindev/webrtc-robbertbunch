@@ -5285,7 +5285,7 @@ function App() {
 //expressRoutes
 app.get('/pro-link', (req, res)=> {
   const userData = {
-    fullName: 'Peter CHan, J.D',
+    fullName: 'Peter Chan, J.D.',
     proId:1234,
 
   }
@@ -5547,8 +5547,60 @@ app.get('/user-link',(req, res)=>{
 ```
 
 ### 71. Pull Appointment Data - (9min)
+- see [siteComponents/important-markup-for-dashboard](src/teleLegalSite/front-end-telelegal/src/siteComponents/important-markup-for-dashboard.txt)
+- 5. pull back and diplay appointment data on connect
+- backend socketServer.js
+  - on connection, if there is a prodId (from decoded jwt), it means its a professional
+  - send the appt data out to the professional
+  - because we imported app, `const app = require('./server').app;`
+  - `const professionalAppointments = app.get('professionalAppointments');`
+  - NOTE: the lecturer uses the fullName as to filter, but there could be people with exact same name...
+  - `socket.emit('appData', professionalAppointments.filter(pa=> pa.professionalsFullName === fullName))`... 
+    - yields an array with just professionalFullName's appointments
+- frontend ProDashboard.js
+  - lesson71 - @2min55 - pull appointment data - below commented out...in favor of passing via socket (instead of sending it to backend)
 
-### 72. Listen for offers on the client - (11min)
+```js
+    // console.log(token);
+    // const fetchDecodedToken = async () => {
+    //   const resp = await axios.post("https://localhost:9000/validate-link", {
+    //     token,
+    //   });
+    //   console.log(resp.data);
+    //   setApptInfo(resp.data);
+    // };
+    // fetchDecodedToken(); 
+```
+- create `webRTCutilities/proSocketListeners.js` for socket listeners
+
+
+- call it
+- pass through `socket` and `setApptInfo()` 
+```js
+//ProDashboard.js
+  const [apptInfo, setApptInfo] = useState([]);
+
+  useEffect(()=>{
+    const token = searchParams.get('token');
+    const socket = socketConnection(token);
+    proSocketListeners(socket, setApptInfo);
+
+  }, [])
+```
+
+```js
+//proSocketListeners.js
+const proSocketListeners = (socket, setApptInfo)=>{
+  socket.on(`apptData`, apptData => {
+    //apptData is this specific professionals data
+    console.log(apptData);
+    setApptInfo(apptData);
+  })
+}
+export default proSocketListeners;
+```
+
+### 72. Listen for offers on the client - (11min) 
 
 ### 73. Create join video route for professional - (6min)
 

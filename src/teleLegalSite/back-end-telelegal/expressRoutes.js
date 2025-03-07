@@ -6,7 +6,23 @@ const linkSecret = 'dfvcv4asodihs97s9fsd';
 const {v4: uuidv4} = require('uuid');
 
 //normally persistent data (from db, api)
-const professionalAppointments = [];
+const professionalAppointments = [{
+  professionalsFullName: "Peter Chan, J.D.",
+  apptDate: Date.now() + 500000,  //8min
+  uuid:1,
+  clientName: "Jim Jones",
+},{
+  professionalsFullName: "Peter Chan, J.D.",
+  apptDate: Date.now() - 2000000, //30min
+  uuid:2,// uuid:uuidv4(),
+  clientName: "Akash Patel",
+},{
+  professionalsFullName: "Peter Chan, J.D.",
+  apptDate: Date.now() + 10000000,  //3hrs
+  uuid:3,//uuid:uuidv4(),
+  clientName: "Mike Williams",
+}];
+
 app.set('professionalAppointments', professionalAppointments);    //accessible via app..
 
 app.get('/', (req, res)=> {
@@ -41,24 +57,6 @@ app.get('/test', (req, res)=>{
   res.json('this is a test route');
 });
 
-//this route is for us to test..
-//we will just add a link which takes us to react site (already with the right info for CLIENT1 to make an offer)
-//in production -> a receptionist / calender/scheduling app would send this out
-app.get('/user-link', (req, res)=>{
-
-  //data for the end-user's appointment
-  const appData = {
-    professionalsFullName: 'Robert Bunch, M.D', //name of person user wants to speak to
-    apptDate: Date.now() + 500000, //delay a bit by eg. 8min
-  };
-
-  //TODO: encode data in token
-  const token = jwt.sign(appData, linkSecret);
-
-  //sent to wherever react is running..
-  res.send(`<a href="https://localhost:3000/join-video?token=${token}">invite link</a>`);
-});
-
 app.post('/validate-link', (req, res)=>{
   //get the token from body of post request (possible with express.json())
   const token = req.body.token;   //was req.query.token;
@@ -72,7 +70,7 @@ app.post('/validate-link', (req, res)=>{
 
 app.get('/pro-link', (req, res)=> {
   const userData = {
-    fullName: 'Peter CHan, J.D',
+    fullName: 'Peter Chan, J.D.',
     proId:1234,
 
   }
