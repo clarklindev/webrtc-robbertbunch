@@ -5,6 +5,7 @@ const linkSecret = 'dfvcv4asodihs97s9fsd';
 
 const {v4: uuidv4} = require('uuid');
 
+//normally persistent data (from db, api)
 const professionalAppointments = [];
 app.set('professionalAppointments', professionalAppointments);    //accessible via app..
 
@@ -16,23 +17,23 @@ app.get('/', (req, res)=> {
 //would send this out. We will print it out and paste it in. It will drop
 //us on our React site with the right info for CLIENT1 to make an offer
 app.get('/user-link',(req, res)=>{
-    const uuid = uuidv4(); // basically a self managed primary key 
+  // const uuid = uuidv4(); // basically a self managed primary key 
+  //data for the end-user's appt
+  // const apptData = {
+  //   professionalsFullName: "Robert Bunch, J.D.",
+  //   apptDate: Date.now() + 500000,
+  //   uuid,
+  //   clientName: "Jim Jones",
+  // }
 
-    //data for the end-user's appt
-    const apptData = {
-      professionalsFullName: "Robert Bunch, J.D.",
-      apptDate: Date.now() + 500000,
-      uuid,
-      clientName: "Jim Jones",
-    }
+  const apptData = professionalAppointments[0];
+  professionalAppointments.push(apptData);
 
-    professionalAppointments.push(apptData);
-
-    //we need to encode this data in a token
-    //so it can be added to a url
-    const token = jwt.sign(apptData,linkSecret);
-    res.send('https://localhost:3000/join-video?token='+token);
-    // res.json("This is a test route")
+  //we need to encode this data in a token
+  //so it can be added to a url
+  const token = jwt.sign(apptData,linkSecret);
+  res.send('https://localhost:3000/join-video?token='+token);
+  // res.json("This is a test route")
 })  
 
 

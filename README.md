@@ -5501,6 +5501,50 @@ if(proId){
 ```
 
 ### 70. Reorganize Appointment Data - (3min)
+- our links: 
+  - https://localhost:9000/pro-link
+
+- OUTCOME -> 4. reorganize apptData (see frontend/ src/siteComponents/important-markup-for-dashboard.txt)
+- it should be live data
+- copy from source files -> `teleLegalSite/starterFiles/apptSeedData.js`
+- what the code below does is fake persistent data
+- benefit is that we dont have a random long uuid and refreshing the webpage has some fake persistent data
+- NOTE: NOT FOR PRODUCTION
+
+```js
+const professionalAppointments = [{
+    professionalsFullName: "Peter Chan, J.D.",
+    apptDate: Date.now() + 500000,  //8min
+    uuid:1,
+    clientName: "Jim Jones",
+},{
+    professionalsFullName: "Peter Chan, J.D.",
+    apptDate: Date.now() - 2000000, //30min
+    uuid:2,// uuid:uuidv4(),
+    clientName: "Akash Patel",
+},{
+    professionalsFullName: "Peter Chan, J.D.",
+    apptDate: Date.now() + 10000000,  //3hrs
+    uuid:3,//uuid:uuidv4(),
+    clientName: "Mike Williams",
+}];
+
+//...
+app.get('/user-link',(req, res)=>{
+  // const uuid = uuidv4(); // basically a self managed primary key 
+  //data for the end-user's appt
+  // const apptData = {
+  //   professionalsFullName: "Robert Bunch, J.D.",
+  //   apptDate: Date.now() + 500000,
+  //   uuid,
+  //   clientName: "Jim Jones",
+  // }
+
+  const apptData = professionalAppointments[0];
+  professionalAppointments.push(apptData);
+  //...
+});
+```
 
 ### 71. Pull Appointment Data - (9min)
 

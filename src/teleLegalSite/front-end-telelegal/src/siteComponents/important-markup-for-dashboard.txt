@@ -1,0 +1,9 @@
+1. Import markup for dashboard
+2. Create path to dashboard
+3. create JWT for attorney auth and validate handshake
+4. reorganize appt data
+5. pull back and diplay appointment data on connect
+6. add listener for user ready when connected
+7. on click join button, go to /join-video (request userMedia)
+8. prompt for vidoe and audio before connecting
+9. create answer, gather iceCandidates and connect! 
