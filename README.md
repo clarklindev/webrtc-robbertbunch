@@ -96,6 +96,8 @@
 
 64. Organize offers on backEnd and add uuid - 8min
 65. createOffer() once the tracks are shared - 13min
+
+---client2(professional)
 66. Add Dashboard markup for professional - 5min
 67. Optional - Overview of markup - 2min
 68. Authenticate professional - 10min
@@ -5601,6 +5603,74 @@ export default proSocketListeners;
 ```
 
 ### 72. Listen for offers on the client - (11min) 
+- 2 use cases for when an offer comes in 
+  - `socket.on('newOffer', ()=>{});`
+  1. when user initiates by clicking to enable audio+video 
+    - fetch offer,
+    - match it to the professional (find who you want to chat to)
+    - send out socket `.emit('newOfferWaiting')`
+
+```js
+//backend/ socketServer.js
+socket.on('newOffer', ({offer, apptInfo})=>{
+  //offer = sdp/type, apptInfo has the uuid that we can add to allKnownOffers so that the professional can find EXACTLY the right allKnownOffers
+  console.log('offer: ', offer);
+  console.log('==============================');
+  console.log('apptInfo: ', apptInfo);
+
+  allKnownOffers[apptInfo.uuid] = {
+    ...apptInfo,
+    offer,
+    offererIceCandidates: [],
+    answer: null,
+    answerIceCandidates: [],
+  }
+
+  //we dont emit this to everyone like we did our chat server
+  //we only want this to go to our professional.
+  //cp === connected professional
+
+  const p = connectedProfessionals.find(cp => cp.fullName === apptInfo.professionalsFullName);
+  if(p){
+    //only emit if the professional is connected
+    const socketId = p.socketId;
+    socket.to(socketId).emit('newOfferWaiting', allKnownOffers[apptInfo.uuid]);
+  }
+});
+```
+
+  2. when professional initiates from dashboard because user already initiated (clicked join audio/start video) and is waiting 
+
+```js
+//backend/ socketServer.js
+if(proId){
+  //means its a professional
+  //check to see if user is already in connectedProfessionals
+  //this would happen because they have reconnected
+  const connectedPro = connectedProfessionals.find(cp=> cp.proId === proId);
+
+  if(connectedPro){
+    //just update the new socket.id
+    connectedPro.socketId = socket.id;
+
+  }else{
+    //otherwise, push on connectedProfessionals
+    connectedProfessionals.push({
+      socketId: socket.id,
+      fullName,
+      proId
+    });
+  }
+
+  //send the appt data out to the professional
+  const professionalAppointments = app.get('professionalAppointments');
+  console.log('all professionalAppointments: ', professionalAppointments);
+  const appointments = professionalAppointments.filter(pa=> pa.professionalsFullName === fullName);
+  socket.emit('apptData', appointments);
+}else{
+  //this is a client
+}
+```
 
 ### 73. Create join video route for professional - (6min)
 
