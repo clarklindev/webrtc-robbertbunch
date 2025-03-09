@@ -5876,6 +5876,9 @@ export default ProMainVideoPage;
 - OUTCOME -> both frontend and backend should return ice candidates
 
 ### 76. Review Task List and Cheer for Our Progress - (7min)
+- going through [tasklist](src/teleLegalSite/taskList.txt)
+- MUST WATCH THE FLOW...
+- still todo: 19-23
 
 ### 77. Emit Answer Up To Server - (8min)
 
