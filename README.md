@@ -5871,6 +5871,9 @@ const ProMainVideoPage = ()=>{
 export default ProMainVideoPage;
 ```
 ### 75. Create Answer and set Descriptions - (10min)
+- 9. create answer, gather iceCandidates and connect
+- frontend/ ProMainVideoPage.js -> `createOfferAsync` needs to be replaced with...`createAnswerAsync`
+- OUTCOME -> both frontend and backend should return ice candidates
 
 ### 76. Review Task List and Cheer for Our Progress - (7min)
 

@@ -50,6 +50,44 @@ const ProMainVideoPage = ()=>{
     fetchMedia();
   }, []);
 
+  //we also have an offer, so we should also set setRemoteDescription
+  useEffect(()=>{
+    const setAsyncOffer = async()=>{
+      for(const s in streams){
+        if(s!=="localStream"){
+          const pc = streams[s].peerConnection;
+          await pc.setRemoteDescription(callStatus.offer);
+          console.log(pc.signalingstate); //should be: have remote offer
+        }
+      }
+    }
+    if(callStatus.offer && streams?.remote1?.peerConnection){
+      setAsyncOffer();
+    }
+  }, [callStatus.offer, streams.remote1]) //streams.remote1 is person on other side
+
+  useEffect(()=>{
+    const createAnswerAsync = async()=>{
+      //we have audio and video, we can make an answer and setLocalDescription (client2)
+      for(const s in streams){
+        if(s !== "localStream"){
+          const pc = streams[s].peerConnection;
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          console.log(pc.signalingState); //should be: have local answer
+          
+          //emit the answer to the server
+
+        }  
+      }
+    }
+    //we only create an answer if audio and video are enabled AND haveCreatedAnswer is false
+    //this may run many times, but these 3 events will only happen once
+    if(callStatus.audio === "enabled" && callStatus.video === "enabled" && !callStatus.haveCreatedAnswer){
+      createAnswerAsync();
+    }
+  }, [callStatus.audio, callStatus.video, callStatus.haveCreatedAnswer])
+
   useEffect(()=>{
     //grab the token out fof the query string
     const token = searchParams.get('token');  //get token out querystring
