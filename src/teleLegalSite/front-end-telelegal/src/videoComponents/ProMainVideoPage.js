@@ -12,7 +12,7 @@ import createPeerConnection from '../webRTCutilities/createPeerConnection';
 import socketConnection from '../webRTCutilities/socketConnection';
 import updateCallStatus from '../redux-elements/actions/updateCallStatus';
 
-const MainVideoPage = ()=>{
+const ProMainVideoPage = ()=>{
 
   const dispatch = useDispatch();
   const callStatus = useSelector(state=> state.callStatus);
@@ -50,36 +50,6 @@ const MainVideoPage = ()=>{
     fetchMedia();
   }, []);
 
-  
-  useEffect(()=>{
-    const createOfferAsync = async ()=>{
-      //we have audio and video, now we make an offer
-      //create an offer against a peer connection ie. need stream
-      for(const s in streams){
-        if(s !== 'localStream'){
-          try{
-            //pc === peerConnection
-            const pc = streams[s].peerConnection;
-            const offer = await pc.createOffer();
-            //get the token from the url for the socket connection
-            const token = searchParams.get('token');
-            //get the socket from socketConnection
-            const socket = socketConnection(token);
-            socket.emit('newOffer', {offer, apptInfo} );
-          }catch(err){
-            console.log(err);
-          }
-        }
-      }
-
-      dispatch(updateCallStatus('haveCreatedOffer', true))
-    }
-    if(callStatus.audio === 'enabled' && callStatus.video === 'enabled' && !callStatus.haveCreatedOffer){
-      createOfferAsync();
-    }
-  }, [callStatus.audio, callStatus.video, callStatus.haveCreatedOffer]);
-
-
   useEffect(()=>{
     //grab the token out fof the query string
     const token = searchParams.get('token');  //get token out querystring
@@ -98,8 +68,14 @@ const MainVideoPage = ()=>{
         {/* div to hold remote video AND local video, AND chat window */}
         <video id="large-feed" ref={largeFeedEl} autoPlay controls playsInline></video>
         <video id="own-feed" ref={smallFeedEl} autoPlay controls playsInline></video>
-        {
-          apptInfo.professionalsFullName ? <CallInfo apptInfo={apptInfo} /> : <></>
+        { callStatus.audio === "off" || callStatus.video === 'off' ? 
+          <div className="call-info">
+            <h1>
+              {searchParams.get('client')} is in the waiting room.<br />
+              call will start when video and audio are enabled
+            </h1>
+          </div>
+          : <></>
         }
         <ChatWindow/>
       </div>
@@ -111,4 +87,4 @@ const MainVideoPage = ()=>{
   )
 }
 
-export default MainVideoPage;
+export default ProMainVideoPage;
