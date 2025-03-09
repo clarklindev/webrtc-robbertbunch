@@ -5609,7 +5609,50 @@ export default proSocketListeners;
     - fetch offer,
     - match it to the professional (find who you want to chat to)
     - send out socket `.emit('newOfferWaiting')`
+    - NOTE: TODO - set a `waiting` boolean after offer is sent out
+    - looking via professionalAppointments for all that belong with same uuid as professional (apptInfo.uuid)
 
+```js
+//backend/ socketServer.js
+  const professionalAppointments = app.get('professionalAppointments');
+  const pa = professionalAppointments.find(pa => pa.uuid === apptInfo.uuid)
+  if(pa){
+    pa.waiting = true;
+  }
+
+```
+    - because of the way we are using app.get('') for professionalAppointments, it mutates the array!!! 
+    - ie. pa.waiting is adding to the globally app `professionalAppointments`
+    - up to here, the `waiting` doesnt update unless page is refreshed
+```js
+//frontend ProDashboard
+//...
+import {useDispatch} from 'react-redux';
+const dispatch = useDispatch();
+useEffect(()=>{
+  //...
+  proSocketListeners(socket, setApptInfo, dispatch);
+},[]);
+
+```
+- pass dispatch in `webRTCutilities/proSocketListeners`
+```js
+//frontend webRTCutilities/proSocketListeners
+import updateCallStatus from '../redux-elements/actions/updateCallStatus';
+const proSocketListeners = (socket, setApptInfo, dispatch)=>{
+    socket.on(`apptData`, apptData => {
+        //apptData is this specific professionals data
+        console.log(apptData);
+        setApptInfo(apptData);
+    });
+    socket.on('newOfferWaiting', offerData=>{
+        //dispatch the offer to redux so that it is available for later..
+        dispatch(updateCallStatus('offer', offerData.offer)); //see socketServer.js
+        dispatch(updateCallStatus('myRole', 'answerer'));
+    })
+}
+export default proSocketListeners;
+```
 ```js
 //backend/ socketServer.js
 socket.on('newOffer', ({offer, apptInfo})=>{
@@ -5620,7 +5663,7 @@ socket.on('newOffer', ({offer, apptInfo})=>{
 
   allKnownOffers[apptInfo.uuid] = {
     ...apptInfo,
-    offer,
+    offer,    //sdp and type
     offererIceCandidates: [],
     answer: null,
     answerIceCandidates: [],
@@ -5628,18 +5671,34 @@ socket.on('newOffer', ({offer, apptInfo})=>{
 
   //we dont emit this to everyone like we did our chat server
   //we only want this to go to our professional.
-  //cp === connected professional
-
+  //p === connected professional
+  //we got professionalAppointments from express (thats where its made)
+  const professionalAppointments = app.get('professionalAppointments');
+  const pa = professionalAppointments.find(pa => pa.uuid === apptInfo.uuid)
+  if(pa){
+    pa.waiting = true;
+  }
+  //find this particular professional so we can emit
   const p = connectedProfessionals.find(cp => cp.fullName === apptInfo.professionalsFullName);
   if(p){
     //only emit if the professional is connected
     const socketId = p.socketId;
+    //send the new offer over
     socket.to(socketId).emit('newOfferWaiting', allKnownOffers[apptInfo.uuid]);
+    //send the update appointment info with the new waiting...
+    socket.to(socketId).emit('apptData', professionalAppointments.filter(pa=> pa.professionalsFullName === apptInfo.professionalsFullname));
+
   }
 });
 ```
 
-  2. when professional initiates from dashboard because user already initiated (clicked join audio/start video) and is waiting 
+  2. when professional initiates from dashboard 
+  - dashboard already open expecting a meeting...
+  - user already initiated (clicked join audio/start video) sends out offer and is waiting 
+  - loop through all known offers and send out to the professional that just joined those that belong to him/her
+  - can use proId instead if professionals with same name exist
+  - loop through allKnownOffers and try match by fullName
+  - if there is a match, this offer is for this professional
 
 ```js
 //backend/ socketServer.js
@@ -5667,6 +5726,15 @@ if(proId){
   console.log('all professionalAppointments: ', professionalAppointments);
   const appointments = professionalAppointments.filter(pa=> pa.professionalsFullName === fullName);
   socket.emit('apptData', appointments);
+
+  //loop through all known offers and send out to the professional that just joined those that belong to him/her
+  //can use proId instead if professionals with same name exist
+  for(const key in allKnownOffers){
+    if(allKnownOffers[key].professionalsFullName === fullName){
+      io.to(socket.id).emit('newOfferWaiting', allKnownOffers[key]);
+     
+    }    
+  }
 }else{
   //this is a client
 }

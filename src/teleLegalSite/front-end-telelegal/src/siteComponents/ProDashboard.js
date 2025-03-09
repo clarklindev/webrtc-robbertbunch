@@ -1,6 +1,8 @@
 // import axios from "axios";
 import { useSearchParams } from "react-router-dom";
 import {useEffect, useState} from 'react';
+import {useDispatch} from 'react-redux';
+
 import socketConnection from "../webRTCutilities/socketConnection";
 import proSocketListeners from "../webRTCutilities/proSocketListeners";
 import moment from 'moment';
@@ -10,6 +12,7 @@ const ProDashboard = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [apptInfo, setApptInfo] = useState([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     //grab the token out of the query string
@@ -29,7 +32,7 @@ const ProDashboard = () => {
     //   setApptInfo(resp.data);
     // };
     // fetchDecodedToken(); 
-    proSocketListeners(socket, setApptInfo);
+    proSocketListeners(socket, setApptInfo, dispatch);
 
 
   }, []);
