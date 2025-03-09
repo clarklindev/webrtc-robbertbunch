@@ -1,5 +1,5 @@
 // import axios from "axios";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
@@ -9,7 +9,7 @@ import moment from 'moment';
 import "./ProDashboard.css";
 
 const ProDashboard = () => {
-
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [apptInfo, setApptInfo] = useState([]);
   const dispatch = useDispatch();
@@ -36,6 +36,14 @@ const ProDashboard = () => {
 
 
   }, []);
+
+  //appt = appointment
+  //{professionalsFullName, apptDate, uuid, clientName, waiting}
+  const joinCall = (appt)=>{
+    console.log("joinCall appt: ", appt);
+    const token = searchParams.get('token');
+    navigate(`/join-video-pro?token=${token}&uuid=${appt.uuid}&client=${appt.clientName}`)
+  }
 
   return (
     <div className="container">
@@ -95,7 +103,7 @@ const ProDashboard = () => {
                           {a.waiting ? 
                           <>
                             <div className="waiting-text d-inline-block">Waiting</div>
-                            <button className="btn btn-danger join-btn">Join</button>
+                            <button className="btn btn-danger join-btn" onClick={()=>joinCall(a)}>Join</button>
                           </>
                           : 
                           <></>}

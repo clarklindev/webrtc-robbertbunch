@@ -5741,6 +5741,40 @@ if(proId){
 ```
 
 ### 73. Create join video route for professional - (6min)
+- [7. get the dashboard join button working](src/teleLegalSite/front-end-telelegal/src/siteComponents/important-markup-for-dashboard.txt)
+- this lesson is basic react routing
+- TODO: `frontend/ ProDashboard` Coming Appointments -> add button listeners for join call from dashboard 
+  - `<button className="btn btn-danger join-btn" onClick={joinCall(a)}>Join</button>`
+- will require appointment information
+- we are interested in `uuid`, `clientName`
+- need `useNavigate()`
+- then navigate(`/join-video-pro?token=${token}&uuid=${appt.uuid}&client=${appt.clientName}`)
+- create the route in App.js `/join-video-pro` `Component="ProMainVideoPage"` 
+- duplicate `MainVideoPage.js` as `ProMainVideoPage.js`
+- import ProMainVideoPage 
+
+<img
+src='exercise_files/section05-webrtc+react-73-create-join-video-route-for-professional.png'
+alt='section05-webrtc+react-73-create-join-video-route-for-professional.png'
+width=600
+/>
+
+```js
+//frontend/ ProDashboard.js
+import { useSearchParams, useNavigate } from "react-router-dom";
+//...
+  const navigate = useNavigate();//react router 6
+  
+  //appt = appointment
+  //{professionalsFullName, apptDate, uuid, clientName, waiting}
+  const joinCall = (appt)=>{
+    console.log("joinCall appt: ", appt);
+    const token = searchParams.get('token');
+    navigate(`/join-video-pro?token=${token}&uuid=${appt.uuid}&client=${appt.clientName}`)
+  }
+
+```
+
 
 ### 74. Add Call Info to Professional Video Page - (4min)
 
