@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import createPeerConnection from '../webRTCutilities/createPeerConnection';
 import socketConnection from '../webRTCutilities/socketConnection';
 import updateCallStatus from '../redux-elements/actions/updateCallStatus';
+import clientSocketListeners from '../webRTCutilities/clientSocketListeners';
 
 const MainVideoPage = ()=>{
 
@@ -67,6 +68,10 @@ const MainVideoPage = ()=>{
             //get the socket from socketConnection
             const socket = socketConnection(token);
             socket.emit('newOffer', {offer, apptInfo} );
+
+            //add our event listeners
+            clientSocketListeners(socket, dispatch);
+
           }catch(err){
             console.log(err);
           }
@@ -80,6 +85,25 @@ const MainVideoPage = ()=>{
     }
   }, [callStatus.audio, callStatus.video, callStatus.haveCreatedOffer]);
 
+  useEffect(()=>{
+    const asyncAddAnswer = async()=>{
+      //listen for changes to callStatus.answer
+      //if it exists, we have an answer!
+      for(const s in streams){
+        if(s !== 'localStream'){
+          const pc = streams[s].peerConnection;
+          await pc.setRemoteDescription(callStatus.answer); 
+          console.log(pc.signalingState);
+          console.log('answer added');
+        }
+      }   
+    }
+ 
+    if(callStatus.answer){
+      asyncAddAnswer();
+    }
+
+  }, [callStatus.answer]);
 
   useEffect(()=>{
     //grab the token out fof the query string

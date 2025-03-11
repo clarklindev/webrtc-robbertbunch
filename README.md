@@ -5922,6 +5922,55 @@ export default ProMainVideoPage;
 - Start the process of sending and receiving ICE candidates between clients.
 
 ### 78. Listen for New Answer On the Client - (12min)
+- working towards answer to client...
+- socketServer.js
+- catering for re-joining of disconnected client
+
+<img
+src='exercise_files/section05-webrtc+react-78-listen-for-new-answer-on-the-client.png'
+alt='section05-webrtc+react-78-listen-for-new-answer-on-the-client.png'
+width=600
+/>
+
+1. Answer to Client:
+- Emit the answer back to the client if the socket exists.
+- If the socket doesn’t exist (e.g., client disconnected), handle the case by adding the offer to the object using the UUID.
+- When the client reconnects, resend the answer using their socket.
+  
+2. Handling Socket Events:
+- The answer event is sent by the professional/attorney, and the client needs to listen for it.
+- If the client reconnects, the offer is retrieved using the UUID from the JWT token and emitted back to the client.
+- Emit the answer using io rather than socket.emit() to avoid emitting to itself.
+
+3. Creating Client Socket Listeners:
+- Create a new file clientSocketListeners.js for managing socket listeners on the client side.
+- In the main video page, the event listeners for the "answer to client" are added after the offer is created.
+
+4. Handling the Client-Side Answer:
+- Dispatch the answer to the client and update the call status when the answer event occurs.
+- Add a useEffect hook in the main video page to listen for updates to callStatus.answer.
+- When the answer is updated, grab the stream and set the remote description using peerConnection.setRemoteDescription().
+
+5. Async Answer Handling:
+- Refactor the answer handling into an async function (addAnswer).
+- Use a for loop to go through streams and update the peer connections with the remote description.
+
+6. Bug Fixes:
+- Fixed an issue where find was incorrectly used with an object instead of accessing the UUID directly.
+- Updated the object property access to use bracket notation (allKnownOffers[UUID]).
+- Corrected a comparison issue where UUID was compared as a string with a number, switching from === to == to fix the mismatch.
+
+7. Handling Reconnection:
+- If a client has disconnected and reconnected, check if the client already exists in connectedClients.
+- If they exist, just update their socket.id, otherwise, add them as a new client.
+
+8. Testing:
+- Tested the solution by refreshing the page, joining the call, and confirming the answer is correctly emitted.
+- The state of the signaling (e.g., "stable") was logged, though it showed incorrectly, but the process worked as expected.
+
+9. Next Steps:
+- In the next video, the focus will shift to adding ICE candidates to the connection process.
+- This summary covers all the significant points discussed, from emitting the answer to handling socket events, fixing bugs, and preparing for future updates.
 
 ### 79. Emit Ice Candidates To Server - (9min)
 
