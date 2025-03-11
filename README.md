@@ -5973,6 +5973,64 @@ width=600
 - This summary covers all the significant points discussed, from emitting the answer to handling socket events, fixing bugs, and preparing for future updates.
 
 ### 79. Emit Ice Candidates To Server - (9min)
+- TODO: Emit Ice Candidates To Server 
+- ICE Candidates sent to signaling server so that they can added to offer and sent to other side
+- currently its emitting from createPeerConnection.. (but it should be moved..)
+```js
+//createPeerConnection.js
+peerConnection.addEventListener("icecandidate", (e) => {
+  console.log("Found ice candidate...");
+  if (e.candidate) {
+    //addIce
+    addIce(e.candidate)
+  }
+});
+```
+- WebRTC - Emitting ICE Candidates to the Server: Summary
+
+#### Current Setup Issue:
+- ICE candidates are being emitted from the createPeerConnection function, but it's not the ideal location.
+- The peer connection creation file is focused on just creating the connection, not dealing with signaling, which should be handled separately.
+
+#### Sending ICE Candidates to the Server:
+- Instead of emitting ICE candidates from the createPeerConnection, a new function addIce is introduced to handle the emission.
+- `addIce` will emit the ICE candidates via a socket connection to the signaling server.
+
+#### Tracking Unique Identifier (UUID):
+- The server needs to know the origin of the ICE candidates and the related offer.
+- The UUID from the client (retrieved via the decoded token) is used to uniquely identify the offer.
+- For professionals, UUID is not directly available upon login, so it’s handled using a useRef to keep track of the UUID without triggering unnecessary re-renders.
+
+#### Implementing addIce:
+- `addIce` is called inside the createPeerConnection function after validating and finding an ICE candidate.
+- The addIce function emits an event ice_to_server with the following data:
+- ICE candidate (ice)
+- Who is sending the candidate (client or professional)
+- UUID to associate the candidate with a specific offer.
+
+#### Handling UUID with useRef:
+- A useRef is used to store the UUID (Uuid_ref) to keep it fresh and avoid re-renders in React.
+- The Uuid_ref.current is updated when appointment data is received, ensuring the correct UUID is used when sending ICE candidates.
+
+#### Handling addIce on the Professional Side:
+- A similar process for addIce is implemented on the professional side.
+- The UUID is fetched from the URL search parameters for the professional, and the ICE candidate is emitted using the same method as the client.
+
+#### Server-Side Handling (Socket Server):
+- The socket server listens for ice_to_server events.
+- Upon receiving the ICE candidate, it logs the candidate, the sender (who), and the UUID.
+
+#### Updating the Offer with ICE Candidates:
+- On the server, when an ICE candidate is received, the server needs to find the corresponding offer using the UUID.
+- The server will update the offer with the ICE candidate based on whether it's the client's offer or the professional's offer (using the who value).
+- It will push the candidate into either the offerIceCandidates or answerIceCandidates array, depending on the sender.
+
+#### Sending Updated Offer:
+- If the user is connected, the updated offer is sent immediately.
+- If not connected, the offer will be pushed when they connect.
+
+#### Next Steps:
+- The next step involves ensuring that the updated offers are pushed to the clients when they are connected and handling the rest of the WebRTC connection process.
 
 ### 80. Send Ice Candidates to clients - (13min)
 

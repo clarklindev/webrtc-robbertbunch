@@ -161,6 +161,21 @@ io.on("connection", (socket) => {
 
     }
   });
+
+  socket.on('iceToServer', ({who, iceC, uuid})=>{
+    console.log("=========================")
+    console.log(who);
+    console.log(iceC);
+    console.log(uuid);
+    const offerToUpdate = allKnownOffers[uuid];
+    if(who === 'client'){
+      //this means client has sent up an ice candidate
+      //update the offer
+      offerToUpdate.offererIceCandidates.push(iceC);
+    }else if(who === 'professional'){
+      offerToUpdate.answerIceCandidates.push(iceC);
+    }
+  });
 });
   
 
