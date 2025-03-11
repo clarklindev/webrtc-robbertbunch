@@ -71,13 +71,23 @@ const ProMainVideoPage = ()=>{
       //we have audio and video, we can make an answer and setLocalDescription (client2)
       for(const s in streams){
         if(s !== "localStream"){
+          
+          
+          //make an answer
           const pc = streams[s].peerConnection;
+
+          //because this is the answering client, the answer is the localDescription
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           console.log(pc.signalingState); //should be: have local answer
-          
-          //emit the answer to the server
+          dispatch(updateCallStatus('haveCreatedAnswer', true));
+          dispatch(updateCallStatus('answer', answer));
 
+          //emit the answer to the server
+          const token = searchParams.get('token');  //get token out querystring
+          const uuid = searchParams.get('uuid');  //get uuid out querystring
+          const socket = socketConnection(token); //get the socket...
+          socket.emit('newAnswer', {answer, uuid});
         }  
       }
     }

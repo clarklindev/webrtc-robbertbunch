@@ -36,6 +36,8 @@ io.on("connection", (socket) => {
     return;
   }
 
+  console.log(`decodedData: `, decodedData);
+
   
   const {fullName, proId} = decodedData;
 //PROFFESIONAL AWAITS OFFER AND CONNECTS
@@ -75,10 +77,33 @@ io.on("connection", (socket) => {
   }else{
 
     //this is a client
-  }
+    const {professionalsFullName, uuid, clientName} = decodedData;
+    connectedClients.push({
+      clientName,
+      uuid,
+      professionalMeetingWith: professionalsFullName,
+      socketId: socket.id
+    })
   
- 
+  }
   console.log(connectedProfessionals);
+
+  socket.on('newAnswer', ({answer, uuid})=>{
+    // console.log(answer);
+    // console.log(uuid);
+    //emit this to the client
+    const socketToSendTo = connectedClients.find(c=>c.uuid === uuid);
+    if(socketToSendTo){
+      socket.to(socketToSendTo.socketId).emit(`answerToClient`, answer); //pass answer to Client
+    }
+
+    //update the offer
+    const knownOffer = allKnownOffers.find(o=> o.uuid === uuid);
+    if(knownOffer){
+      knownOffer.answer = answer;
+    }
+
+  });
 
 //USER INITIATES OFFER
   socket.on('newOffer', ({offer, apptInfo})=>{

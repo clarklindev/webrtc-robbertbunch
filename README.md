@@ -5881,6 +5881,45 @@ export default ProMainVideoPage;
 - still todo: 19-23
 
 ### 77. Emit Answer Up To Server - (8min)
+- This summary captures the key points of the process of: 
+  - dispatching the answer, 
+  - emitting it to the server, 
+  - handling client connections, 
+  - and setting up for future functionality.
+
+#### Create and Dispatch Answer:
+- After generating the answer, it is dispatched in the application.
+- Update the call status and set a flag (haveCreatedAnswer = true).
+- Dispatch the answer to the server.
+
+#### Socket Connection Setup:
+- Socket connection is established, and a JWT token is used for the connection.
+- Emit the answer to the server using socket.emit, sending an object containing:
+- The answer
+- UUID (extracted from the URL)
+
+#### Server-Side Handling:
+- In the server code, listen for the "new answer" event.
+- Retrieve the answer and UUID from the emitted data.
+- Log the received data (answer and UUID) for debugging.
+
+#### Emit to Client:
+- Emit the answer back to the client after receiving it.
+- The answer can be sent using the client's socket ID.
+- Plan for a potential future feature where a room can be created for communication.
+
+#### Handling Connected Clients:
+- Maintain a list of connected clients, storing their UUID and client name.
+- This list will help find the right client for emitting the answer.
+
+#### Updated Socket Handling:
+- Once the client connects, look for the right client based on the UUID sent.
+- Emit the answer to the correct socket using its socket.id.
+- Update the known offer in the system with the newly received answer.
+
+#### Prepare for Ice Candidate Exchange:
+- The next step (in the following video) will involve listening for the new answer on the client-side.
+- Start the process of sending and receiving ICE candidates between clients.
 
 ### 78. Listen for New Answer On the Client - (12min)
 
