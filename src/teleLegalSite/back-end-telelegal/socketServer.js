@@ -171,9 +171,9 @@ io.on("connection", (socket) => {
     if(who === 'client'){
       //this means client has sent up an ice candidate
       //update the offer
-      offerToUpdate.offererIceCandidates.push(iceC);
+      offerToUpdate.offererIceCandidates.push(iceC);//professional needs this
     }else if(who === 'professional'){
-      offerToUpdate.answerIceCandidates.push(iceC);
+      offerToUpdate.answerIceCandidates.push(iceC); //client needs this
     }
   });
 });

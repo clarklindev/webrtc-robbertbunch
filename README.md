@@ -97,27 +97,27 @@
 64. Organize offers on backEnd and add uuid - 8min
 65. createOffer() once the tracks are shared - 13min
 
----client2(professional)
-66. Add Dashboard markup for professional - 5min
-67. Optional - Overview of markup - 2min
-68. Authenticate professional - 10min
-69. socket refactoring - 9min
-70. Reorganize Appointment Data - 3min
-71. Pull Appointment Data - 9min
-72. Listen for offers on the client - 11min
-73. Create join video route for professional - 6min
-74. Add Call Info to Professional Video Page - 4min
-75. Create Answer and set Descriptions - 10min
-76. Review Task List and Cheer for Our Progress - 7min
-77. Emit Answer Up To Server - 8min
-78. Listen for New Answer On the Client - 12min
-79. Emit Ice Candidates To Server - 9min
-80. Send Ice Candidates to clients - 13min
-81. Add Ice Candidates to Peer Connection - 12min
-82. AddTracks and... VICTORY!!! (test app) - 6min
-83. Fix 2 small bugs - 2min
-84. Make the HangupButton do something! - 5min
-85. ReplaceTracks on change device - 8min
+---client2(professional)  
+66. Add Dashboard markup for professional - 5min  
+67. Optional - Overview of markup - 2min  
+68. Authenticate professional - 10min  
+69. socket refactoring - 9min  
+70. Reorganize Appointment Data - 3min  
+71. Pull Appointment Data - 9min  
+72. Listen for offers on the client - 11min  
+73. Create join video route for professional - 6min  
+74. Add Call Info to Professional Video Page - 4min  
+75. Create Answer and set Descriptions - 10min  
+76. Review Task List and Cheer for Our Progress - 7min  
+77. Emit Answer Up To Server - 8min  
+78. Listen for New Answer On the Client - 12min  
+79. Emit Ice Candidates To Server - 9min  
+80. Send Ice Candidates to clients - 13min  
+81. Add Ice Candidates to Peer Connection - 12min  
+82. AddTracks and... VICTORY!!! (test app) - 6min  
+83. Fix 2 small bugs - 2min  
+84. Make the HangupButton do something! - 5min  
+85. ReplaceTracks on change device - 8min  
 
 --- AWS
 
@@ -6033,6 +6033,8 @@ peerConnection.addEventListener("icecandidate", (e) => {
 - The next step involves ensuring that the updated offers are pushed to the clients when they are connected and handling the rest of the WebRTC connection process.
 
 ### 80. Send Ice Candidates to clients - (13min)
+- take newly acquired ice candidates and send to appropriate client
+- backend/ socketServer.js
 
 ### 81. Add Ice Candidates to Peer Connection - (12min)
 

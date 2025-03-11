@@ -50,6 +50,14 @@ const ProMainVideoPage = ()=>{
     fetchMedia();
   }, []);
 
+
+  useEffect(()=>{
+    const getIceAsync = async ()=>{
+      const socket = socketConnection(searchParams.get('token'));
+      const iceCandidates = await socket.emitWithAck('getIce', uuid, "professional")
+    }
+  })
+
   //we also have an offer, so we should also set setRemoteDescription
   useEffect(()=>{
     const setAsyncOffer = async()=>{
