@@ -162,18 +162,32 @@ io.on("connection", (socket) => {
     }
   });
 
+  
+  socket.on('getIce', (uuid, who, ackFunc)=>{
+    const offer = allKnownOffers[uuid];
+    let iceCandidates = [];
+    if(who === 'professional'){
+      iceCandidates = offer.offererIceCandidates;
+    }else if(who ==="client"){
+      iceCandidates = offer.answerIceCandidates;
+    }
+    ackFunc(iceCandidates);
+  });
+
   socket.on('iceToServer', ({who, iceC, uuid})=>{
-    console.log("=========================")
-    console.log(who);
-    console.log(iceC);
-    console.log(uuid);
+    console.log("=========================", who);
+    // console.log(who);
+    // console.log(iceC);
+    // console.log(uuid);
     const offerToUpdate = allKnownOffers[uuid];
-    if(who === 'client'){
-      //this means client has sent up an ice candidate
-      //update the offer
-      offerToUpdate.offererIceCandidates.push(iceC);//professional needs this
-    }else if(who === 'professional'){
-      offerToUpdate.answerIceCandidates.push(iceC); //client needs this
+    if(offerToUpdate){
+      if(who === 'client'){
+        //this means client has sent up an ice candidate
+        //update the offer
+        offerToUpdate.offererIceCandidates.push(iceC);//professional needs this
+      }else if(who === 'professional'){
+        offerToUpdate.answerIceCandidates.push(iceC); //client needs this
+      }
     }
   });
 });

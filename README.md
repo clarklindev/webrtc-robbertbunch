@@ -6033,8 +6033,115 @@ peerConnection.addEventListener("icecandidate", (e) => {
 - The next step involves ensuring that the updated offers are pushed to the clients when they are connected and handling the rest of the WebRTC connection process.
 
 ### 80. Send Ice Candidates to clients - (13min)
+
+<img
+src='exercise_files/section05-webrtc+react-80-send-ice-candidates-to-client.png'
+alt='section05-webrtc+react-80-send-ice-candidates-to-client.png'
+width=600
+/>
+
 - take newly acquired ice candidates and send to appropriate client
 - backend/ socketServer.js
+  - only run code if `offerToUpdate` exists
+- on other side when they call getIce, we send them the appropriate ice candidates
+```js
+//backend/ socketServer.js
+socket.on('iceToServer', ({who, iceC, uuid})=>{
+  console.log("=========================", who);
+  // console.log(who);
+  // console.log(iceC);
+  // console.log(uuid);
+  const offerToUpdate = allKnownOffers[uuid];
+  if(offerToUpdate){
+    if(who === 'client'){
+      //this means client has sent up an ice candidate
+      //update the offer
+      offerToUpdate.offererIceCandidates.push(iceC);//professional needs this
+    }else if(who === 'professional'){
+      offerToUpdate.answerIceCandidates.push(iceC); //client needs this
+    }
+  }
+});
+
+//...
+```
+- frontend/ ProMainVideoPAge.js
+- @2min45sec
+- TODO: build a useEffect -> to update the offer
+- emit getIce event with uuid and professional
+  - returns ice candidates
+- @7min.51sec - explains the process again (watch!)
+  - socketServer.js
+    - someone sent the ice candidate to us
+    - we grab the offer for that particular uuid
+    - if it was client we add to offererIceCandidates
+    - if it was professional we add to answerIceCandidates
+- @9min.03sec
+  - after receiving emitWithAck results it contains an iceCandidates array
+  - loop through array of iceCandidates (each iceCandidate)
+  - loopthrough all streams (except `localStream`)
+  - grab the peer connection `const pc = streams[s].peerConnection;`
+  - add iceCandidate to it...
+  - prevent the useEffect running after by adding `const [haveGottenIce, setHaveGottenIce] = useState(false);`
+```js
+//ProMainVideoPage.js
+
+const [haveGottenIce, setHaveGottenIce] = useState(false);
+
+useEffect(()=>{
+
+  const getIceASync = async ()=>{
+    const socket = socketConnection(searchParams.get('token'));
+    const uuid = searchParams.get('uuid');
+    const iceCandidates = await socket.emitWithAck('getIce', uuid, "professional");
+    console.log('iceCandidate Received');
+    console.log(iceCandidates);
+
+    //this wont run unless we wait for streams -> streams.remote1 exists
+    iceCandidates.forEach(iceC=>{
+      for(const s in streams){
+        if(s !== 'localStream'){
+          const pc = streams[s].peerConnection;
+          pc.addIceCandidate(iceC);
+          console.log('=============Added Ice candidate!!!!!');
+        }
+      }
+    });
+  }
+  if(streams.remote1 && !haveGottenIce){
+    setHaveGottenIce(true);
+    getIceASync();
+  }
+}, [streams, haveGottenIce]);
+```
+
+- @8min.12sec  
+  - proMainVideoPage.js
+    - professional visits proMainVideoPage.js
+    - the useEffect loads up (getIceAsync)
+    - calls socket.emitWithAck('getIce') passing uuid and "professional"
+    - it returns the iceCandidates `const iceCandidates = await socket.emitWithAck('getIce', uuid, "professional");`
+    - socket.on('getIce', (uuid, who, ackFunc)=>{}); receives the emit and eventually calls callback `ackFunc(iceCandidates)`
+      - it grabs the offer based on uuid sent up
+      - sets up an array
+      - depending on `who`, populate the array
+      - send it back via `ackFunc(iceCandidates)`
+
+```js
+//backend socketServer.js
+//...
+
+socket.on('getIce', (uuid, who, ackFunc)=>{
+  const offer = allKnownOffers[uuid];
+  let iceCandidates = [];
+  if(who === 'professional'){
+    iceCandidates = offer.offererIceCandidates;
+  }else if(who ==="client"){
+    iceCandidates = offer.answerIceCandidates;
+  }
+  ackFunc(iceCandidates);
+})
+```
 
 ### 81. Add Ice Candidates to Peer Connection - (12min)
 

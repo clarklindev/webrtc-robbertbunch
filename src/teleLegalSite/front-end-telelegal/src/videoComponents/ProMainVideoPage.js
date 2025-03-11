@@ -23,7 +23,8 @@ const ProMainVideoPage = ()=>{
   const [apptInfo, setApptInfo] = useState({});
   const smallFeedEl = useRef(null); //react ref to DOM element
   const largeFeedEl = useRef(null);
-  
+  const [haveGottenIce, setHaveGottenIce] = useState(false);
+
   useEffect(()=>{
     //fetch the user media
     const fetchMedia = async() =>{
@@ -52,11 +53,30 @@ const ProMainVideoPage = ()=>{
 
 
   useEffect(()=>{
-    const getIceAsync = async ()=>{
+
+    const getIceASync = async ()=>{
       const socket = socketConnection(searchParams.get('token'));
-      const iceCandidates = await socket.emitWithAck('getIce', uuid, "professional")
+      const uuid = searchParams.get('uuid');
+      const iceCandidates = await socket.emitWithAck('getIce', uuid, "professional");
+      console.log('iceCandidate Received');
+      console.log(iceCandidates);
+  
+      //this wont run unless we wait for streams -> streams.remote1 exists
+      iceCandidates.forEach(iceC=>{
+        for(const s in streams){
+          if(s !== 'localStream'){
+            const pc = streams[s].peerConnection;
+            pc.addIceCandidate(iceC);
+            console.log('=============Added Ice candidate!!!!!');
+          }
+        }
+      });
     }
-  })
+    if(streams.remote1 && !haveGottenIce){
+      setHaveGottenIce(true);
+      getIceASync();
+    }
+  }, [streams, haveGottenIce]);
 
   //we also have an offer, so we should also set setRemoteDescription
   useEffect(()=>{
