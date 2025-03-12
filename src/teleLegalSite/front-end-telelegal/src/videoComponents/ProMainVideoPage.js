@@ -54,7 +54,7 @@ const ProMainVideoPage = ()=>{
 
   useEffect(()=>{
 
-    const getIceASync = async ()=>{
+    const getIceAsync = async ()=>{
       const socket = socketConnection(searchParams.get('token'));
       const uuid = searchParams.get('uuid');
       const iceCandidates = await socket.emitWithAck('getIce', uuid, "professional");
@@ -74,7 +74,7 @@ const ProMainVideoPage = ()=>{
     }
     if(streams.remote1 && !haveGottenIce){
       setHaveGottenIce(true);
-      getIceASync();
+      getIceAsync();
     }
   }, [streams, haveGottenIce]);
 
