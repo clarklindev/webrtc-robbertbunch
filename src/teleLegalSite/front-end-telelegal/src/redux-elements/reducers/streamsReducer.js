@@ -5,7 +5,7 @@
     // peerConnection = actual webRTC connection
 // }
 
-//eg. local, remote1, remote2+
+//local, remote1, remote2+
 
 export default (state = {}, action)=>{
     if(action.type === "ADD_STREAM"){

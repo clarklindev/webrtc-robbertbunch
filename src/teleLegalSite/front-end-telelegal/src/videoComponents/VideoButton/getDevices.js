@@ -5,8 +5,7 @@
 const getDevices = ()=>{
     return new Promise(async(resolve, reject)=>{
         const devices = await navigator.mediaDevices.enumerateDevices()
-        console.log('............................................Device list')
-        console.log(devices);
+        // console.log(devices);
         const videoDevices = devices.filter(d=>d.kind === "videoinput");
         const audioOutputDevices = devices.filter(d=>d.kind === "audiooutput");
         const audioInputDevices = devices.filter(d=>d.kind === "audioinput");

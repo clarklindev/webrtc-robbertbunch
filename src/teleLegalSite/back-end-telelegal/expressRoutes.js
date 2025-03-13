@@ -43,7 +43,7 @@ app.get('/user-link',(req, res)=>{
   // }
 
   const apptData = professionalAppointments[0];
-  professionalAppointments.push(apptData);
+  // professionalAppointments.push(apptData);
 
   //we need to encode this data in a token
   //so it can be added to a url

@@ -6144,6 +6144,138 @@ socket.on('getIce', (uuid, who, ackFunc)=>{
 ```
 
 ### 81. Add Ice Candidates to Peer Connection - (12min)
+- getting the iceCandidates coming through
+- TODO: use `socket.on('iceToServer')` look for socket to send to 
+- `const socketToSendTo = connectedProfessionals.find(cp => cp.fullName === decodedData.professionalsFullName)`
+- if it finds socketToSendTo emit `iceToClient`
+
+- socketServer.js
+```js
+//socketServer.js
+
+socket.on('iceToServer', ({who, iceC, uuid})=>{
+  console.log("=========================", who);
+  // console.log(who);
+  // console.log(iceC);
+  // console.log(uuid);
+  const offerToUpdate = allKnownOffers[uuid];
+  if(offerToUpdate){
+    if(who === 'client'){
+      //this means client has sent up an ice candidate
+      //update the offer
+      offerToUpdate.offererIceCandidates.push(iceC);//professional needs this
+
+      const socketToSendTo = connectedProfessionals.find(cp => cp.fullName === decodedData.professionalsFullName)
+      if(socketToSendTo){
+        socket.to(socketToSendTo.socketId).emit('iceToClient', iceC);
+      }
+
+    }else if(who === 'professional'){
+      offerToUpdate.answerIceCandidates.push(iceC); //client needs this
+
+      const socketToSendTo = connectedClients.find(cp => cp.uuid === uuid);
+      if(socketToSendTo){
+        socket.to(socketToSendTo.socketId).emit('iceToClient', iceC);
+      }
+    }
+  }
+});
+```
+- NOTE: @1min.53sec -> @2min.22 NO SOUND (silence in video) be he copies the below function from ProDashboard to ProMainVideoPage and tweaks it...
+
+- @2min.03sec
+- then copy from ProDashboard.js
+```js
+//ProDashboard.js
+useEffect(() => {
+  //grab the token out of the query string
+  const token = searchParams.get("token"); //get token out querystring
+  const socket = socketConnection(token);
+  proSocketListeners(socket, setApptInfo, dispatch);
+}, []);
+```
+- paste in ProMainVideoPage.js 
+- but the listeners expect specific props for the component (ProDashboard) 
+- vs (ProMainVideoPage) - we cant have same implementation because ProMainVideoPage wont have access to the same props 
+- proSocketListeners(socket, setApptInfo, dispatch); eg. it wont have `setApptInfo`
+
+```js
+//ProMainVideoPage.js
+useEffect(() => {
+  //grab the token out of the query string
+  const token = searchParams.get("token"); //get token out querystring
+  const socket = socketConnection(token);
+  proSocketListeners.proVideoSocketListeners(socket, addIceCandidateToPc, dispatch);
+}, []);
+```
+
+- @2min.48sec
+- proSocketListeners.js
+- rename the function to proDashboardSocketListeners
+- export an object with proDashboardSocketListeners as one of the output
+
+```js
+//proSocketListeners.js
+const proDashboardSocketListeners = (socket, setApptInfo, dispatch)=>{
+  socket.on(`apptData`, apptData => {
+      //apptData is this specific professionals data
+      console.log(apptData);
+      setApptInfo(apptData);
+  });
+  socket.on('newOfferWaiting', offerData=>{
+      //dispatch the offer to redux so that it is available for later..
+      dispatch(updateCallStatus('offer', offerData.offer)); //see socketServer.js
+      dispatch(updateCallStatus('myRole', 'answerer'));
+  })
+}
+
+const proVideoSocketListeners = () => {
+
+}
+
+export default {proDashboardSocketListeners, proVideoSocketListeners}
+```
+
+#### update 
+- update ProDashboard.js
+```js
+//ProDashboard.js
+useEffect(() => {
+  //grab the token out of the query string
+  const token = searchParams.get("token"); //get token out querystring
+  const socket = socketConnection(token);
+  proSocketListeners.prodDashboardSocketListeners(socket, setApptInfo, dispatch);
+}, []);
+```
+### Summary of Working with WebRTC - Adding ICE Candidates to Peer Connection:
+
+#### ICE Candidate Handling:
+- ICE candidates are needed for both professionals and clients, and they should be loaded as soon as available.
+- Event handling for ICE candidates involves finding the right socket for the professional/client using their full name (professional) or uuid (client).
+
+#### Socket Communication:
+- Use socket.emit to send the ICE candidate to the appropriate socket (socket.emit('ice to client', iceCandidate)).
+- Implement similar logic for both professionals and clients, with adjustments based on whether the professional or client is involved.
+
+#### Component-Level Socket Listeners:
+
+- The socket listeners must be specifically tailored to different pages (e.g., pro main video page or pro dashboard), as they have different event listeners and data to handle.
+- The listeners for adding ICE candidates to the peer connection (add Ice candidate to PC) should be exported and used properly within components.
+
+#### Adding ICE Candidate to Peer Connection:
+- On receiving an ICE candidate, the event handler will loop through the available streams and add the ICE candidate to the respective peer connection.
+- This logic ensures the existing connection gets updated with the new ICE candidate.
+
+#### State Management and Ref Handling:
+- Use useRef for managing the streams object, as streams might not update immediately.
+- Ensure that streams are updated only after redux dispatching completes, using useEffect to handle updates.
+
+#### Final Adjustments:
+- Ensure that the page components are correctly set up to trigger socket listeners and add ICE candidates when necessary.
+- After setting up ICE candidates and descriptions, the final step is to add media tracks (audio/video) and update the video - feed for proper communication.
+
+#### Testing:
+- After setting up the system, test by ensuring that both sides (client and professional) receive and add ICE candidates correctly, allowing the video/audio communication to work smoothly.
 
 ### 82. AddTracks and... VICTORY!!! (test app) - (6min)
 

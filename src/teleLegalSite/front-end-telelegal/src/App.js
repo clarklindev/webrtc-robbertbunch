@@ -3,7 +3,6 @@ import socketConnection from './webRTCutilities/socketConnection';
 import MainVideoPage from './videoComponents/MainVideoPage';
 import ProMainVideoPage from './videoComponents/ProMainVideoPage';
 
-import ExternalRedirect from './utilities/ExternalRedirect';
 import ProDashboard from './siteComponents/ProDashboard';
 
 import './App.css';

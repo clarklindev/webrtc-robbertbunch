@@ -63,8 +63,7 @@ io.on("connection", (socket) => {
     //send the appt data out to the professional
     const professionalAppointments = app.get('professionalAppointments');
     console.log('all professionalAppointments: ', professionalAppointments);
-    const appointments = professionalAppointments.filter(pa=> pa.professionalsFullName === fullName);
-    socket.emit('apptData', appointments);
+    socket.emit('apptData',professionalAppointments.filter(pa=> pa.professionalsFullName === fullName));
 
     //loop through all known offers and send out to the professional that just joined those that belong to him/her
     //can use proId instead if professionals with same name exist
