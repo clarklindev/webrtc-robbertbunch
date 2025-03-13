@@ -6278,6 +6278,68 @@ useEffect(() => {
 - After setting up the system, test by ensuring that both sides (client and professional) receive and add ICE candidates correctly, allowing the video/audio communication to work smoothly.
 
 ### 82. AddTracks and... VICTORY!!! (test app) - (6min)
+- STATUS -> 
+  - we have an offer 
+  - and an answer
+  - they have been added as an local and remote description on their respective clients
+  - the clients have exchanged ice candidates
+- TODO -> add tracks + switch over to srcObject
+- if it works we will see console.log("Fingers crossed...")
+- TODO -> getting rid of the overlay text on video
+  - in addIceCandidateToPc -> call `setShowCallInfo(false);`
+```js
+//MainVideoPage.js + PromainVideoPage.js
+const largeFeedEl = useRef(null);
+const [ showCallInfo, setShowCallInfo] = useState(true)
+
+const { peerConnection, remoteStream } = await createPeerConnection(addIce);
+
+largeFeedEl.current.srcObject = remoteStream //we have the remoteStream from our peerConnection. set the video feed to be the remoteStream just created.
+
+const addIceCandidateToPc = (iceC)=>{
+    console.log('CALLED addIceCandidateToPc!!!!');
+    //add an ice candidate form the remote, to the pc
+    for (const s in streamsRef.current){
+        if(s !== 'localStream'){
+            const pc = streamsRef.current[s].peerConnection;
+            pc.addIceCandidate(iceC);
+            console.log("Added an iceCandidate to existing page presence")
+            setShowCallInfo(false);
+        }
+    }
+}
+
+///...
+return(
+  <div className="main-video-page">
+      <div className="video-chat-wrapper">
+          {/* Div to hold our remote video, our local video, and our chat window*/}
+          <video id="large-feed" ref={largeFeedEl} autoPlay controls playsInline></video>
+          <video id="own-feed" ref={smallFeedEl} autoPlay controls playsInline></video>
+          {showCallInfo ? <CallInfo apptInfo={apptInfo} /> : <></>}
+          <ChatWindow />
+      </div>
+      <ActionButtons 
+          smallFeedEl={smallFeedEl} 
+          largeFeedEl={largeFeedEl}              
+      />
+  </div>
+)
+```
+
+```js
+//createPeerConnection.js
+peerConnection.addEventListener('track',e=>{
+    console.log("Got a track from the remote!")
+
+    //0 index because usually single stream
+    e.streams[0].getTracks().forEach(track=>{
+        remoteStream.addTrack(track,remoteStream);
+        console.log("Fingers crossed...")
+    })
+})
+```
+
 
 ### 83. Fix 2 small bugs - (2min)
 
