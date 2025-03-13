@@ -6342,6 +6342,21 @@ peerConnection.addEventListener('track',e=>{
 
 
 ### 83. Fix 2 small bugs - (2min)
+1. MainVideoPage.js remove duplicate listeners createOfferAsync() `clientSocketListeners(socket, dispatch)`
+- rely on...
+
+```js
+//MainVideoPage.js
+useEffect(()=>{
+      //grab the token var out of the query string
+      const token = searchParams.get('token');
+      const socket = socketConnection(token);
+      clientSocketListeners(socket, dispatch, addIceCandidateToPc);
+  },[])
+```
+
+2. backend/ socketServers.js
+- 
 
 ### 84. Make the HangupButton do something! - (5min)
 

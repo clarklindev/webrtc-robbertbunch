@@ -142,7 +142,7 @@ io.on("connection", (socket) => {
 
     //we got professionalAppointments from express (thats where its made)
     const professionalAppointments = app.get('professionalAppointments');
-    const pa = professionalAppointments.find(pa => pa.uuid === apptInfo.uuid)
+    const pa = professionalAppointments.find(pa => pa.uuid == apptInfo.uuid)
     if(pa){
       pa.waiting = true;
     }
@@ -184,8 +184,19 @@ io.on("connection", (socket) => {
         //this means client has sent up an ice candidate
         //update the offer
         offerToUpdate.offererIceCandidates.push(iceC);//professional needs this
+  
+        const socketToSendTo = connectedProfessionals.find(cp => cp.fullName === decodedData.professionalsFullName)
+        if(socketToSendTo){
+          socket.to(socketToSendTo.socketId).emit('iceToClient', iceC);
+        }
+  
       }else if(who === 'professional'){
         offerToUpdate.answerIceCandidates.push(iceC); //client needs this
+  
+        const socketToSendTo = connectedClients.find(cp => cp.uuid == uuid);
+        if(socketToSendTo){
+          socket.to(socketToSendTo.socketId).emit('iceToClient', iceC);
+        }
       }
     }
   });
