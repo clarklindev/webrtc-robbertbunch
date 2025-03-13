@@ -6392,7 +6392,63 @@ const ActionButtons = ({openCLoseChat, smallFeedEl, largeFeedEl})=>{
 >
 ```
 ### 85. ReplaceTracks on change device - (8min)
+- switching video source feed updates locally but doesnt update the other persons stream
+- VideoButton.js
+- AudioButton.js
+- RTCRtpSender: `replaceTrack()`
+  - replaces the track currently being used as the sender's source with a new MediaStreamTrack
+  - should be same type
+  - should NOT require re-negotiation
+- `RTCPeerConnection` has a `getSenders()` 
+- `RTCRtpSender` - ability to control and obtain details about how a particular `MediaStreamTrack` is `encoded` and `sent` to a remote peer
 
+```js
+// VideoButton.js
+//come back to this later
+//if we stop the old tracks, and add the new tracks, that will mean
+// ... renegotiation
+for(const s in streams){
+    if(s !== "localStream"){
+        //getSenders will grab all the RTCRtpSenders that the PC has
+        //RTCRtpSender manages how tracks are sent via the PC
+        const senders = streams[s].peerConnection.getSenders();
+        //find the sender that is in charge of the video track
+        const sender = senders.find(s=>{
+            if(s.track){
+                //if this track matches the videoTrack kind, return it
+                return s.track.kind === videoTrack.kind
+            }else{
+                return false;
+            }
+        })
+        //sender is RTCRtpSender, so it can replace the track
+        sender.replaceTrack(videoTrack)
+    }
+}
+```
+
+- same in AudioButton.js
+```js
+//AudioButton.js
+for(const s in streams){
+  if(s !== "localStream"){
+      //getSenders will grab all the RTCRtpSenders that the PC has
+      //RTCRtpSender manages how tracks are sent via the PC
+      const senders = streams[s].peerConnection.getSenders();
+      //find the sender that is in charge of the video track
+      const sender = senders.find(s=>{
+          if(s.track){
+              //if this track matches the audioTrack kind, return it
+              return s.track.kind === audioTrack.kind
+          }else{
+              return false;
+          }
+      })
+      //sender is RTCRtpSender, so it can replace the track
+      sender.replaceTrack(audioTrack)
+  }
+}
+```
 ---
 
 ---

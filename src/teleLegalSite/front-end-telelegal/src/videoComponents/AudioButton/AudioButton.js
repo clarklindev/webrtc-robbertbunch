@@ -92,7 +92,7 @@ const AudioButton = ({smallFeedEl})=>{
                     //find the sender that is in charge of the video track
                     const sender = senders.find(s=>{
                         if(s.track){
-                            //if this track matches the videoTrack kind, return it
+                            //if this track matches the audioTrack kind, return it
                             return s.track.kind === audioTrack.kind
                         }else{
                             return false;
