@@ -6359,7 +6359,38 @@ useEffect(()=>{
 - 
 
 ### 84. Make the HangupButton do something! - (5min)
+- HangupButton.js -> hangupCall()
+```js
+const ActionButtons = ({openCLoseChat, smallFeedEl, largeFeedEl})=>{
+  const hangupCall = ()=>{
+      dispatch(updateCallStatus('current','complete'))
+      //user has clicked hang up
+      for(const s in streams){
+          //loop through all streams, and if there is a pc, close it
+          //remove listeners
+          //set it to null
+          if(streams[s].peerConnection){
+              streams[s].peerConnection.close();
+              streams[s].peerConnection.onicecandidate = null
+              streams[s].peerConnection.onaddstream = null
+              streams[s].peerConnection = null;
+          }
+      }
+      //set both video tags to empty
+      smallFeedEl.current.srcObject = null;
+      largeFeedEl.current.srcObject = null;
+  }
 
+}
+```
+
+```js
+// MainVideoPage.js + ProMainVideoPage.js
+<ActionButtons 
+  smallFeedEl={smallFeedEl}
+  largeFeedEl={largeFeedEl}
+>
+```
 ### 85. ReplaceTracks on change device - (8min)
 
 ---
