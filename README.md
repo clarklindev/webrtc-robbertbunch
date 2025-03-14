@@ -2385,6 +2385,14 @@ const socket = io.connect('https://192.168.1.104:8181/, {
 
 - NOTE: very important lessons and should be watched before section3
 
+- this is the ultimate diagram that accompanies this course
+
+<img
+src='exercise_files/section04-38-webrtc-process-review-webrtc-flow.jpg'
+alt='section04-38-webrtc-process-review-webrtc-flow.jpg'
+width=1000
+/>
+
 ### 39. Code Review - (50min)
 
 - NOTE: very important lessons and should be watched before section3
