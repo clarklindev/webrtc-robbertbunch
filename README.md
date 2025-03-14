@@ -12,6 +12,9 @@
 
 # getUserMedia
 
+[tasklist-course](exercise_files/tasklist-course.pdf)  
+[tasklist-youtube](exercise_files/tasklist-youtube.pdf)
+
 ## Section 02 - getUserMedia playground (basics)
 
 6.  Project file setup - 3min
@@ -2385,7 +2388,7 @@ const socket = io.connect('https://192.168.1.104:8181/, {
 
 - NOTE: very important lessons and should be watched before section3
 
-- this is the ultimate diagram that accompanies this course
+- this is the ultimate diagram that accompanies this course [printable pdf](exercise_files/print-webrtc-flow.pdf)
 
 <img
 src='exercise_files/section04-38-webrtc-process-review-webrtc-flow.jpg'
